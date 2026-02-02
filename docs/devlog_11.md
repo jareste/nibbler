@@ -168,8 +168,8 @@ bool TextRenderer::renderText(const std::string& text, int x, int y, int offset,
 Moving forward, I decided to draw both the title and the gameover of the SDL2 realm by hand, using geometry functions. Two reasons for this: 1) absolute control of the looks across game sizes and resolutions, 2) couldn't find a font that satisfied my needs, and making one by myself would take too much time. The general idea with the typography for these is to write words with snake-like squiggles, i.e., letters that could be written by moving the snake. I arrived at a point which is satisfactory enough, but might still evolve during development:
 
 <p float="left">
-  <img src="SDL_title_big.png" alt="SDL intro screen in its big format" height=500>
-  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" height=500 hspace="20">
+  <img src="SDL_title_big.png" alt="SDL intro screen in its big format" width=350>
+  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" width=350 hspace="20">
 </p>
 
 There's no need to change typographies here because the words are, as I said, geometry based, so I can tweak the size of them by just changing the building block's size (`square` and `separator`). In `NCurses` I had to design two different ASCII based options because dynamically writting them char by char would literally end me. Aside from this, the title and gameover drawing functions in SDL were too big and, again, were cluttering my class code, so I made a secondary class `TitleHandler` to, you guessed it, handle the title renderings.
@@ -182,12 +182,12 @@ At this point, I had to go back to `NCurses` to redesign the titles and logos th
 
 <p float="left">
   <img src="NCurses_logo3_big.png" alt="NCurses nibbler logo in big format" height=500>
-  <img src="NCurses_logo3_small.png" alt="NCurses nibbler logo in small format" height=500 hspace="40">
+  <img src="NCurses_logo3_small.png" alt="NCurses nibbler logo in small format" height=500 hspace="20">
 </p>
 
 <p float="left">
   <img src="NCurses_gameover3_big.png" alt="NCurses game over screen in big format" height=500>
-  <img src="NCurses_gameover3_small.png" alt="NCurses game over screen in small format" height=500 hspace="40">
+  <img src="NCurses_gameover3_small.png" alt="NCurses game over screen in small format" height=500 hspace="20">
 </p>
 
 No, at least, lets rumble with `Raylib`. The first thing I want to do is enhancing the noise postprocessing pipeline, as it was quite shabby (i.e., *cutre*). I had a unique pattern slightly moving around the screen and I generally hated it, as what I wanted was something more akin to how a CRT/VHS noise would look like. In words, the noise would have to be completely changing patterns at each drawing frame, making it loook like *real* noise instead of some static overlay. This, on the other hand, came with possible dangers with the pattern management, because generating them at drawing time would be an anti-optimizing horrible decision. Instead of that, the patterns shoudl be generated at `init()`, and the drawing calls should pick between the set of generated patterns. Finding a sweet spot for their amount is kind of vibes based, but for now I went with 8, so that there's not too many byt there is enough to avoid visible repetition.
@@ -256,6 +256,9 @@ FOV = 0.022619*size² + 0.198810*size + 31.028571
   <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" height=500 vspace=20>
   <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" height=500 vspace=20>
 </p>
+
+Moving on, drawing the nibbler logo/title with cubes was *kinda* easy, honestly quite similar as drawing it with squares in `SDL2`, but what for some god forsaken reason took me a lot of time was the centering of it all. In the end it was the silliest thing imaginable, but I had an exahusting fight to make the isometric, cube based `nibbler` logo be correctly positioned in my game world. Which is even worse if we take into consideration that the `Raylib` render is the one that that gives me more freedom when drawing the title, without any need of managing what happens if the size is this or that size, as everything is based on the game world size and the initialized values for `cubeSize` and `separator`. Anyway, it is done, and it looks like this:
+
 
 
 <br>

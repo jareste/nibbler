@@ -7,6 +7,7 @@
 
 RaylibGraphic::RaylibGraphic() :
 	cubeSize(2.0f),
+	menuFov(50.0f),
 	gridWidth(0),
 	gridHeight(0),
 	screenWidth(1920),
@@ -14,13 +15,17 @@ RaylibGraphic::RaylibGraphic() :
 	accumulatedTime(0.0f),
 	currentGrainFrame(0),
 	grainFrameTimer(0.0f),
-	grainFrameInterval(0.05f) {}  // Change grain every 50ms (20 fps)
+	grainFrameInterval(0.05f) {
+		separator = cubeSize * 2;
+	}
 
 RaylibGraphic::~RaylibGraphic() {
 	// Unload all grain textures
 	for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
 		UnloadTexture(grainTextures[i]);
 	}
+	// Unload Unicode font
+	UnloadFont(customFont);
 	CloseWindow();
 	std::cout << BYEL << "[Raylib 3D] Destroyed" << RESET << std::endl;
 }
@@ -33,6 +38,30 @@ void RaylibGraphic::init(int width, int height) {
 	SetTargetFPS(60);
 	
 	setupCamera();
+	
+	// Load font with Unicode support
+	// Create array with all codepoints we need
+	int codepointCount = 256 - 32 + 8;  // ASCII printable (32-255) + arrows + dot
+	int *codepoints = new int[codepointCount];
+	
+	// Load basic ASCII printable characters (32-255)
+	for (int i = 0; i < (256 - 32); i++) {
+		codepoints[i] = 32 + i;
+	}
+	
+	// Add Unicode arrows and middle dot
+	codepoints[256 - 32 + 0] = 0x2191;  // ↑
+	codepoints[256 - 32 + 1] = 0x2193;  // ↓
+	codepoints[256 - 32 + 2] = 0x2190;  // ←
+	codepoints[256 - 32 + 3] = 0x2192;  // →
+	codepoints[256 - 32 + 4] = 0x00B7;  // · (middle dot)
+	codepoints[256 - 32 + 5] = 0x2022;  // • (bullet point, alternative)
+	codepoints[256 - 32 + 6] = 0x00B7;  // · (duplicate for safety)
+	codepoints[256 - 32 + 7] = 0x002E;  // . (period, fallback)
+	
+	// DejaVu Sans has better Unicode coverage including arrow characters
+	customFont = LoadFontEx("fonts/JetBrainsMono-VariableFont_wght.ttf", 64, codepoints, codepointCount);
+	delete[] codepoints;
 	
 	// noise pattern generation
 	for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
@@ -104,8 +133,9 @@ void RaylibGraphic::drawCubeCustomFaces(Vector3 position, float width, float hei
 }
 
 void RaylibGraphic::setupCamera() {
-	float centerX = (gridWidth * cubeSize) / 2.0f;
-	float centerZ = (gridHeight * cubeSize) / 2.0f;
+	// Grid is now centered at origin (0, 0, 0)
+	float centerX = 0.0f;
+	float centerZ = 0.0f;
 	
 	float diagonal = sqrtf(gridWidth * gridWidth + gridHeight * gridHeight) * cubeSize;
 	float distance = diagonal * 2.2f;  // 20% padding
@@ -119,32 +149,35 @@ void RaylibGraphic::setupCamera() {
 		centerZ + distance * sinf(rotation) * cosf(elevation)
 	};
 	
-	camera.target = (Vector3){ centerX, cubeSize * 2, centerZ };
+	camera.target = (Vector3){ centerX, 0.0f, centerZ };
 	camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
 
-	float size = static_cast<float>((gridWidth + gridHeight) / 2);
-	float fov = 0.022619f * size * size + 0.198810f * size + 31.028571f;
+	cameraSize = static_cast<float>((gridWidth + gridHeight) / 2);
+	customFov = 0.022619f * cameraSize * cameraSize + 0.198810f * cameraSize + 31.028571f;
 	
-	camera.fovy = fov;
+	camera.fovy = customFov;
 	camera.projection = CAMERA_ORTHOGRAPHIC;
 }
 
 void RaylibGraphic::drawGroundPlane() {
+	float offsetX = (gridWidth * cubeSize) / 2.0f;
+	float offsetZ = (gridHeight * cubeSize) / 2.0f;
+	
 	for (int z = 0; z < gridHeight; z++) {
 		for (int x = 0; x < gridWidth; x++) {		
 			Vector3 position = {
-				x * cubeSize,
+				x * cubeSize - offsetX,
 				0.0f,
-				z * cubeSize
+				z * cubeSize - offsetZ
 			};
 			
 			if ((x + z) % 2 == 0) {
 				drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
-			                    groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
 			}
 			else {
 				drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
-			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+									groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
 			}
 		}
 	}
@@ -179,13 +212,17 @@ void RaylibGraphic::drawWalls() {
 void RaylibGraphic::drawSnake(const Snake* snake) {
 	float yPos = cubeSize;
 	
+	// Calculate offset to match grid centering
+	float offsetX = (gridWidth * cubeSize) / 2.0f;
+	float offsetZ = (gridHeight * cubeSize) / 2.0f;
+	
 	for (int i = 0; i < snake->getLength(); i++) {
 		const Vec2& segment = snake->getSegments()[i];
 		
 		Vector3 position = {
-			segment.x * cubeSize,
+			segment.x * cubeSize - offsetX,
 			yPos,
-			segment.y * cubeSize
+			segment.y * cubeSize - offsetZ
 		};
 		
 		// Head is full size, body is 80% size
@@ -206,11 +243,15 @@ void RaylibGraphic::drawSnake(const Snake* snake) {
 void RaylibGraphic::drawFood(const Food* food) {
 	float yPos = cubeSize;
 	
+	// Calculate offset to match grid centering
+	float offsetX = (gridWidth * cubeSize) / 2.0f;
+	float offsetZ = (gridHeight * cubeSize) / 2.0f;
+	
 	Vec2 foodPos = food->getPosition();
 	Vector3 position = {
-		foodPos.x * cubeSize,
+		foodPos.x * cubeSize - offsetX,
 		yPos,
-		foodPos.y * cubeSize
+		foodPos.y * cubeSize - offsetZ
 	};
 	
 	// Pulsing effect using controlled time (freezes when paused)
@@ -225,6 +266,7 @@ void RaylibGraphic::drawNoiseGrain() {
 }
 
 void RaylibGraphic::render(const GameState& state, float deltaTime){
+	camera.fovy = customFov;
 	if (!state.isPaused) {
         accumulatedTime += deltaTime;
     }
@@ -245,6 +287,9 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	//drawWalls();
 	drawSnake(&state.snake);
 	drawFood(&state.food);
+
+	// DEBUG
+	//DrawGrid(gridWidth, cubeSize);
 	
 	EndMode3D();
 	
@@ -263,6 +308,396 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	EndDrawing();
 }
 
+void RaylibGraphic::drawTitle() {
+	camera.fovy = menuFov;
+	float yPos = 0;
+	float size = cubeSize;
+	
+	float initialX = -2.5 * cubeSize;
+	float initialZ = 19.5 * cubeSize;
+	
+	Vector3 position = {
+		initialX,
+		yPos,
+		initialZ
+	};
+
+	Vector3 initialPosition = position;
+	Vector3 accumulatedPosition = position;
+
+	// n
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = initialPosition;
+	position.z -= cubeSize * 3;
+	position.x += cubeSize;
+
+	for (int i = 0; i < 2; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = initialPosition;
+	position.x += cubeSize;
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	position = initialPosition;
+	position.z -= cubeSize * 4;
+	position.x += cubeSize * 2;
+	for (int i = 0; i < 3; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	// i
+	accumulatedPosition.z -= (cubeSize * 5) + separator;
+	position = accumulatedPosition;
+	position.x -= cubeSize * 7;
+
+	// dot with pulsating effect
+	float pulse = 1.0f + sinf(accumulatedTime * 3.0f) * 0.1f;
+	drawCubeCustomFaces(position, size * pulse, size * pulse, size * pulse,
+			                    foodFront, foodHidden, foodTop, foodHidden, foodSide, foodHidden);
+
+	// head
+	position.x += cubeSize * 2;
+	drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									snakeLightFront, snakeHidden, snakeLightTop, snakeHidden, snakeLightSide, snakeHidden);
+
+	position.x += cubeSize;
+	position.y += 0.1f;
+	for (int i = 0; i < 11; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize * 0.8f, cubeSize * 0.8f, cubeSize * 0.8f,
+									snakeLightFront, snakeHidden, snakeLightTop, snakeHidden, snakeLightSide, snakeHidden);
+		} else {
+			drawCubeCustomFaces(position, size * 0.8f, size * 0.8f, size * 0.8f,
+			                    snakeDarkFront, snakeHidden, snakeDarkTop, snakeHidden, snakeDarkSide, snakeHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	for (int i = 1; i < 29; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize * 0.8f, cubeSize * 0.8f, cubeSize * 0.8f,
+									snakeLightFront, snakeHidden, snakeLightTop, snakeHidden, snakeLightSide, snakeHidden);
+		} else {
+			drawCubeCustomFaces(position, cubeSize * 0.8f, cubeSize * 0.8f, cubeSize * 0.8f,
+			                    snakeDarkFront, snakeHidden, snakeDarkTop, snakeHidden, snakeDarkSide, snakeHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	// b 1
+	accumulatedPosition.z -= cubeSize + separator;
+	position = accumulatedPosition;
+	position.x -= cubeSize * 3;
+
+	for (int i = 0; i < 8; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.z -= cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize * 4;
+	position.z -= cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+	
+	position = accumulatedPosition;
+	position.x += cubeSize;
+	position.z -= cubeSize * 4;
+
+	for (int i = 0; i < 3; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	// b 2
+	accumulatedPosition.z -= (cubeSize * 5) + separator;
+	position = accumulatedPosition;
+	position.x -= cubeSize * 3;
+
+	for (int i = 0; i < 8; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.z -= cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize * 4;
+	position.z -= cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+	
+	position = accumulatedPosition;
+	position.x += cubeSize;
+	position.z -= cubeSize * 4;
+
+	for (int i = 0; i < 3; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	// l
+	accumulatedPosition.z -= (cubeSize * 5) + separator;
+	position = accumulatedPosition;
+	position.x -= cubeSize * 3;
+
+	for (int i = 0; i < 8; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	// e
+	accumulatedPosition.z -= cubeSize + separator;
+	position = accumulatedPosition;
+
+	for (int i = 0; i < 5; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize;
+	position.z -= cubeSize * 4;
+
+	for (int i = 0; i < 1; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize * 2;
+	position.z -= cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.z -= cubeSize;
+	position.x += cubeSize * 4;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	// r
+	accumulatedPosition.z -= (cubeSize * 5) + separator;
+	position = accumulatedPosition;
+
+	for (int i = 0; i < 5; i++) {
+		if (i % 2 == 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.z -= cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.x += cubeSize;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	position = accumulatedPosition;
+	position.z -= cubeSize * 4;
+	position.x += cubeSize;
+
+	for (int i = 0; i < 1; i++) {
+		if (i % 2 != 0) {
+			drawCubeCustomFaces(position, cubeSize, cubeSize, cubeSize,
+									groundLightFront, groundHidden, groundLightTop, groundHidden, groundLightSide, groundHidden);
+		} else {
+			drawCubeCustomFaces(position, size, size, size,
+			                    groundDarkFront, groundHidden, groundDarkTop, groundHidden, groundDarkSide, groundHidden);
+		}
+		position.x += cubeSize;
+	}
+
+	// DEBUG
+	//DrawGrid(gridWidth, cubeSize);
+}
+
+void RaylibGraphic::drawInstructions() {
+	Vector3 textPosition = { 0.0f, 0.0f, 0.0f };
+	float fontSize = 2.0f;
+	float fontSpacing = 0.20f;
+	float lineSpacing = 1.0f;
+	
+	DrawText3D(customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, customWhite);
+	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, customGray);
+	
+	textPosition.x += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, customWhite);
+	DrawText3D(customFont, "            ············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, customGray);
+	
+	textPosition.x += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ 1   2   3 ]         TRAVEL", textPosition, fontSize, fontSpacing, lineSpacing, false, customWhite);
+	DrawText3D(customFont, "    /   /     ·······       ", textPosition, fontSize, fontSpacing, lineSpacing, false, customGray);
+	
+	textPosition.x += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ Q   ESC ] ··········· QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, customWhite);
+	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, customGray);
+}
+
 void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
 	if (!state.isPaused) {
         accumulatedTime += deltaTime;
@@ -277,10 +712,13 @@ void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
 	
 	BeginDrawing();
 	ClearBackground(customBlack);
+
+	BeginMode3D(camera);
 	
-	// TODO: Implement proper Raylib menu screen
-	DrawText("NIBBLER", screenWidth/2 - 150, screenHeight/2 - 100, 60, customWhite);
-	DrawText("Press ENTER to start", screenWidth/2 - 150, screenHeight/2, 30, customWhite);
+	drawTitle();
+	drawInstructions();
+
+	EndMode3D();
 
 	drawNoiseGrain();
 	
@@ -309,6 +747,110 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	drawNoiseGrain();
 	
 	EndDrawing();
+}
+
+void RaylibGraphic::DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint) {
+	// Character index position in sprite font
+	int index = GetGlyphIndex(font, codepoint);
+	float scale = fontSize / (float)font.baseSize;
+	
+	// Character destination rectangle on screen
+	position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding) * scale;
+	position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding) * scale;
+	
+	// Character source rectangle from font texture atlas
+	Rectangle srcRec = { 
+		font.recs[index].x - (float)font.glyphPadding, 
+		font.recs[index].y - (float)font.glyphPadding,
+		font.recs[index].width + 2.0f * font.glyphPadding, 
+		font.recs[index].height + 2.0f * font.glyphPadding 
+	};
+	
+	float width = (float)(font.recs[index].width + 2.0f * font.glyphPadding) * scale;
+	float height = (float)(font.recs[index].height + 2.0f * font.glyphPadding) * scale;
+	
+	if (font.texture.id > 0) {
+		const float x = 0.0f;
+		const float y = 0.0f;
+		const float z = 0.0f;
+		
+		// Normalized texture coordinates of the glyph inside the font texture (0.0f -> 1.0f)
+		const float tx = srcRec.x / font.texture.width;
+		const float ty = srcRec.y / font.texture.height;
+		const float tw = (srcRec.x + srcRec.width) / font.texture.width;
+		const float th = (srcRec.y + srcRec.height) / font.texture.height;
+		
+		rlCheckRenderBatchLimit(4 + 4 * backface);
+		rlSetTexture(font.texture.id);
+		
+		rlPushMatrix();
+		rlTranslatef(position.x, position.y, position.z);
+		
+		rlBegin(RL_QUADS);
+		rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+		
+		// Front Face
+		rlNormal3f(0.0f, 1.0f, 0.0f);
+		rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+		rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+		rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+		
+		if (backface) {
+			// Back Face
+			rlNormal3f(0.0f, -1.0f, 0.0f);
+			rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+			rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+			rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+			rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		}
+		rlEnd();
+		rlPopMatrix();
+		
+		rlSetTexture(0);
+	}
+}
+
+void RaylibGraphic::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint) {
+    int length = TextLength(text);
+    
+    float textOffsetY = cubeSize * 7;
+    float textOffsetX = -cubeSize * 7;
+    
+    float scale = fontSize / (float)font.baseSize;
+    
+    rlPushMatrix();
+    rlTranslatef(position.x, position.y, position.z);
+    rlRotatef(+90.0f, 0.0f, 1.0f, 0.0f);
+    
+    for (int i = 0; i < length;) {
+        int codepointByteCount = 0;
+        int codepoint = GetCodepoint(&text[i], &codepointByteCount);
+        int index = GetGlyphIndex(font, codepoint);
+        
+        if (codepoint == 0x3f) codepointByteCount = 1;
+        
+        if (codepoint == '\n') {
+            textOffsetY += fontSize + lineSpacing;
+            textOffsetX = 0.0f;
+        } else {
+            if ((codepoint != ' ') && (codepoint != '\t')) {
+                DrawTextCodepoint3D(font, codepoint, 
+                    (Vector3){ textOffsetX, 0.0f, textOffsetY },
+                    fontSize, backface, tint);
+            }
+            
+            if (font.glyphs[index].advanceX == 0) {
+                textOffsetX += (float)font.recs[index].width * scale + fontSpacing;
+            } else {
+                textOffsetX += (float)font.glyphs[index].advanceX * scale + fontSpacing;
+            }
+        }
+        
+        i += codepointByteCount;
+    }
+    
+    rlPopMatrix();
 }
 
 Input RaylibGraphic::pollInput() {
