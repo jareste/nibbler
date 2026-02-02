@@ -169,7 +169,7 @@ Moving forward, I decided to draw both the title and the gameover of the SDL2 re
 
 <p float="left">
   <img src="SDL_title_big.png" alt="SDL intro screen in its big format" height=500>
-  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" height=500 hspace="40">
+  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" height=500 hspace="20">
 </p>
 
 There's no need to change typographies here because the words are, as I said, geometry based, so I can tweak the size of them by just changing the building block's size (`square` and `separator`). In `NCurses` I had to design two different ASCII based options because dynamically writting them char by char would literally end me. Aside from this, the title and gameover drawing functions in SDL were too big and, again, were cluttering my class code, so I made a secondary class `TitleHandler` to, you guessed it, handle the title renderings.
@@ -253,8 +253,8 @@ FOV = 0.022619*size² + 0.198810*size + 31.028571
 
 <p float="left">
   <img src="raylib_camera_small.png" alt="Raylib framing of a small size game arena" height=500>
-  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" vspace = 20>
-  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" vspace = 20>
+  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" height=500 vspace=20>
+  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" height=500 vspace=20>
 </p>
 
 
