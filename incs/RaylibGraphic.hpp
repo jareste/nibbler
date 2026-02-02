@@ -6,6 +6,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <iostream>
+#include <array>
 
 class RaylibGraphic : public IGraphic {
 private:
@@ -18,7 +19,13 @@ private:
 	float	accumulatedTime;
 
 	Camera3D	camera;
-	Texture2D	grainTexture;  // Pre-generated grain texture
+	
+	// Postprocessing noise system
+	static const int							GRAIN_TEXTURE_COUNT = 8;
+	std::array<Texture2D, GRAIN_TEXTURE_COUNT>	grainTextures;
+	int											currentGrainFrame;
+	float										grainFrameTimer;
+	float										grainFrameInterval;
 	
 	// Colors
 	Color customWhite = { 255, 248, 227, 255};      // Warm off-white (cream)

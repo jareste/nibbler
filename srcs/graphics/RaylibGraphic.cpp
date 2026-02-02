@@ -11,13 +11,39 @@ RaylibGraphic::RaylibGraphic() :
 	gridHeight(0),
 	screenWidth(1920),
 	screenHeight(1080),
-	accumulatedTime(0.0f) {}
+	accumulatedTime(0.0f),
+	currentGrainFrame(0),
+	grainFrameTimer(0.0f),
+	grainFrameInterval(0.05f) {}  // Change grain every 50ms (20 fps)
 
 RaylibGraphic::~RaylibGraphic() {
-		UnloadTexture(grainTexture);
-		CloseWindow();
-		std::cout << BYEL << "[Raylib 3D] Destroyed" << RESET << std::endl;
+	// Unload all grain textures
+	for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
+		UnloadTexture(grainTextures[i]);
 	}
+	CloseWindow();
+	std::cout << BYEL << "[Raylib 3D] Destroyed" << RESET << std::endl;
+}
+
+void RaylibGraphic::init(int width, int height) {
+	gridWidth = width;
+	gridHeight = height;
+	
+	InitWindow(screenWidth, screenHeight, "Nibbler 3D - Raylib");
+	SetTargetFPS(60);
+	
+	setupCamera();
+	
+	// noise pattern generation
+	for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
+		// Unique seeding for varaition
+		Image grainImage = GenImageWhiteNoise(screenWidth, screenHeight, 0.75f);
+		grainTextures[i] = LoadTextureFromImage(grainImage);
+		UnloadImage(grainImage);
+	}
+	
+	std::cout << BYEL << "[Raylib 3D] Initialized: " << width << "x" << height << RESET << std::endl;
+}
 
 void RaylibGraphic::drawCubeCustomFaces(Vector3 position, float width, float height, float length,
                                          Color front, Color back, Color top, Color bottom, Color right, Color left) {
@@ -26,7 +52,6 @@ void RaylibGraphic::drawCubeCustomFaces(Vector3 position, float width, float hei
 	float z = position.z;
 	
 	// In isometric view, typically visible faces are: front (+Z), top (+Y), right (+X)
-	
 	rlPushMatrix();
 	rlTranslatef(x, y, z);
 	
@@ -82,11 +107,9 @@ void RaylibGraphic::setupCamera() {
 	float centerX = (gridWidth * cubeSize) / 2.0f;
 	float centerZ = (gridHeight * cubeSize) / 2.0f;
 	
-	// Calculate diagonal distance to ensure entire grid fits
 	float diagonal = sqrtf(gridWidth * gridWidth + gridHeight * gridHeight) * cubeSize;
 	float distance = diagonal * 2.2f;  // 20% padding
 	
-	// Standard isometric angles: 35.264° elevation, 45° rotation
 	float elevation = 35.264f * DEG2RAD;  // Classic isometric angle
 	float rotation = 45.0f * DEG2RAD;
 	
@@ -96,9 +119,13 @@ void RaylibGraphic::setupCamera() {
 		centerZ + distance * sinf(rotation) * cosf(elevation)
 	};
 	
-	camera.target = (Vector3){ centerX, cubeSize * 2, centerZ }; // "* 3" is there to adjust the centering of the scene
+	camera.target = (Vector3){ centerX, cubeSize * 2, centerZ };
 	camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-	camera.fovy = 60.0f; // Can be used in Ortho mode to tweak the camera zoom
+
+	float size = static_cast<float>((gridWidth + gridHeight) / 2);
+	float fov = 0.022619f * size * size + 0.198810f * size + 31.028571f;
+	
+	camera.fovy = fov;
 	camera.projection = CAMERA_ORTHOGRAPHIC;
 }
 
@@ -194,35 +221,20 @@ void RaylibGraphic::drawFood(const Food* food) {
 }
 
 void RaylibGraphic::drawNoiseGrain() {
-	float offsetX = sinf(accumulatedTime * 0.5f) * 10.0f - 20.0f;
-	float offsetY = cosf(accumulatedTime * 0.3f) * 10.0f - 20.0f;
-	
-	DrawTextureEx(grainTexture, (Vector2){ offsetX, offsetY }, 0.0f, 1.0f, (Color){ 255, 255, 255, 20 });
-}
-
-void RaylibGraphic::init(int width, int height) {
-	gridWidth = width;
-	gridHeight = height;
-	
-	InitWindow(screenWidth, screenHeight, "Nibbler 3D - Raylib");
-	SetTargetFPS(60);
-	
-	setupCamera();
-	
-	// Grain Texture
-	int paddedWidth = screenWidth + 40;   // +40 pixels (±20 for oscillation)
-	int paddedHeight = screenHeight + 40;
-	Image grainImage = GenImageWhiteNoise(paddedWidth, paddedHeight, 0.75f);
-	grainTexture = LoadTextureFromImage(grainImage);
-	UnloadImage(grainImage);
-	
-	std::cout << BYEL << "[Raylib 3D] Initialized: " << width << "x" << height << RESET << std::endl;
+	DrawTextureEx(grainTextures[currentGrainFrame], (Vector2){ 0.0f, 0.0f }, 0.0f, 1.0f, (Color){ 255, 255, 255, 20 });
 }
 
 void RaylibGraphic::render(const GameState& state, float deltaTime){
 	if (!state.isPaused) {
         accumulatedTime += deltaTime;
     }
+	
+	// Update film grain pattern at regular intervals
+	grainFrameTimer += deltaTime;
+	if (grainFrameTimer >= grainFrameInterval) {
+		grainFrameTimer = 0.0f;
+		currentGrainFrame = GetRandomValue(0, GRAIN_TEXTURE_COUNT - 1);
+	}
 
 	BeginDrawing();
 	ClearBackground(customBlack);
@@ -233,9 +245,6 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	//drawWalls();
 	drawSnake(&state.snake);
 	drawFood(&state.food);
-	
-	// Optional: Draw grid lines for debugging
-	// DrawGrid(gridWidth, cubeSize);
 	
 	EndMode3D();
 	
@@ -255,8 +264,16 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 }
 
 void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
-	(void)state;
-	(void)deltaTime;
+	if (!state.isPaused) {
+        accumulatedTime += deltaTime;
+    }
+	
+	// Update film grain pattern at regular intervals
+	grainFrameTimer += deltaTime;
+	if (grainFrameTimer >= grainFrameInterval) {
+		grainFrameTimer = 0.0f;
+		currentGrainFrame = GetRandomValue(0, GRAIN_TEXTURE_COUNT - 1);
+	}
 	
 	BeginDrawing();
 	ClearBackground(customBlack);
@@ -264,12 +281,19 @@ void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
 	// TODO: Implement proper Raylib menu screen
 	DrawText("NIBBLER", screenWidth/2 - 150, screenHeight/2 - 100, 60, customWhite);
 	DrawText("Press ENTER to start", screenWidth/2 - 150, screenHeight/2, 30, customWhite);
+
+	drawNoiseGrain();
 	
 	EndDrawing();
 }
 
 void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
-	(void)deltaTime;
+	// Update film grain pattern at regular intervals
+	grainFrameTimer += deltaTime;
+	if (grainFrameTimer >= grainFrameInterval) {
+		grainFrameTimer = 0.0f;
+		currentGrainFrame = GetRandomValue(0, GRAIN_TEXTURE_COUNT - 1);
+	}
 	
 	BeginDrawing();
 	ClearBackground(customBlack);
@@ -281,6 +305,8 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	snprintf(scoreText, sizeof(scoreText), "Score: %d", state.score);
 	DrawText(scoreText, screenWidth/2 - 80, screenHeight/2 + 20, 30, customWhite);
 	DrawText("Press ENTER to restart", screenWidth/2 - 150, screenHeight/2 + 80, 25, customWhite);
+	
+	drawNoiseGrain();
 	
 	EndDrawing();
 }

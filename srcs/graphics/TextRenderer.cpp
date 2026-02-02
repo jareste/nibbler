@@ -109,8 +109,8 @@ void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, 
 		"[ ENTER ]          START" :
 		"[ ENTER ]             START";
 	std::string instructionTextB = smallMode ?
-		"          ········      " :
-		"          ···········     ";
+		"         ··········     " :
+		"         ············     ";
 	renderInstruction(centerX, centerY, offset, 
 	                  instructionTextA, instructionTextB, 
 	                  smallMode, currentFont);
@@ -120,8 +120,8 @@ void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, 
 		"[ ↑ ↓ ← → ]         MOVE" :
 		"[ ↑ ↓ ← → ]            MOVE";
 	instructionTextB = smallMode ?
-		"            ·······     " :
-		"            ··········     ";
+		"           ·········    " :
+		"           ············    ";
 	renderInstruction(centerX, centerY, offset, 
 	                  instructionTextA, instructionTextB, 
 	                  smallMode, currentFont);
@@ -131,8 +131,8 @@ void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, 
 		"[ 1   2   3 ]     TRAVEL" :
 		"[ 1   2   3 ]        TRAVEL";
 	instructionTextB = smallMode ?
-		"    /   /     ···       " :
-		"    /   /     ······       ";
+		"    /   /    ·····      " :
+		"    /   /    ········      ";
 	renderInstruction(centerX, centerY, offset, 
 	                  instructionTextA, instructionTextB, 
 	                  smallMode, currentFont);
@@ -142,8 +142,8 @@ void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, 
 		"[ Q   ESC ]         QUIT" :
 		"[ Q   ESC ]            QUIT";
 	instructionTextB = smallMode ?
-		"    /       ·······     " :
-		"    /       ··········    ";
+		"    /      ·········    " :
+		"    /      ···········    ";
 	renderInstruction(centerX, centerY, offset, 
 	                  instructionTextA, instructionTextB, 
 	                  smallMode, currentFont);
@@ -204,15 +204,15 @@ void TextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode, i
 
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
 
-	int offset = square * 11;
+	int offset = square * 10.5;
 	
 	// Retry instructions
 	std::string gameoverTextA = smallMode ?
 		"[ ENTER ]          RETRY" :
 		"[ ENTER ]             RETRY";
 	std::string gameoverTextB = smallMode ?
-		"          ·······      " :
-		"          ··········     ";
+		"         ·········     " :
+		"        ·············    ";
 	
 	renderInstruction(centerX, centerY, offset, 
 	                  gameoverTextA, gameoverTextB, 
@@ -223,8 +223,8 @@ void TextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode, i
 		"[ Q   ESC ]         QUIT" :
 		"[ Q   ESC ]            QUIT";
 	gameoverTextB = smallMode ?
-		"    /       ·······     " :
-		"    /       ··········    ";
+		"    /       ·········     " :
+		"    /      ···········    ";
 	
 	renderInstruction(centerX, centerY, offset, 
 	                  gameoverTextA, gameoverTextB, 

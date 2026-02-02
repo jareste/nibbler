@@ -132,9 +132,9 @@ void NCursesGraphic::render(const GameState& state, float deltaTime) {
 
 	werase(gameWindow);
 	
-	int win_height, win_width;
+	/* int win_height, win_width;
 	getmaxyx(gameWindow, win_height, win_width);
-	
+	(void)win_height; */
 	drawGround();
 
 	drawBorder();

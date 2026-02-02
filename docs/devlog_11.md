@@ -4,7 +4,7 @@
 1. [Day Eleven Plan](#111-day-eleven-plan)
 2. [The Miracle of Standards](#112-the-miracle-of-standards)
 3. [The Graphic Gardens of Eden](#112-the-graphic-gardens-of-eden)
-4. [Encouraging, Which Is a Gerund]
+4. [Encouraging, Which Is a Gerund](#114-encouraging-which-is-a-gerund)
 
 <br>
 <br>
@@ -15,7 +15,9 @@ A considerable chunk of today's working time has gone towards job applications, 
 
 > *As I wrote this devlog, it seems that I fully adopted a snake + apple = garden of eden theme. By day 11, one must find ways to keep things joyful, right?*
 
-> *This log ended up being about more than one day: from the 11th to the 14th work session. I don't want to change too much stuff here, so I'll just make the 12th devlog tart with *Day Fifteen Plans*.
+> *This log ended up being about more than one day: from the 11th to the 15th work session. I don't want to change too much stuff here, so I'll just make the 12th devlog tart with *Day Sixteen Plans*.
+
+> *I've rewritten the last comment 3 or 4 times at this point. Looks like I greatly misjudged how much time the reworking of the general menu aesthetics across libraries would take. Staying in character, I must say.*
 
 <br>
 <br>
@@ -187,6 +189,74 @@ At this point, I had to go back to `NCurses` to redesign the titles and logos th
   <img src="NCurses_gameover3_big.png" alt="NCurses game over screen in big format" height=500>
   <img src="NCurses_gameover3_small.png" alt="NCurses game over screen in small format" height=500 hspace="40">
 </p>
+
+No, at least, lets rumble with `Raylib`. The first thing I want to do is enhancing the noise postprocessing pipeline, as it was quite shabby (i.e., *cutre*). I had a unique pattern slightly moving around the screen and I generally hated it, as what I wanted was something more akin to how a CRT/VHS noise would look like. In words, the noise would have to be completely changing patterns at each drawing frame, making it loook like *real* noise instead of some static overlay. This, on the other hand, came with possible dangers with the pattern management, because generating them at drawing time would be an anti-optimizing horrible decision. Instead of that, the patterns shoudl be generated at `init()`, and the drawing calls should pick between the set of generated patterns. Finding a sweet spot for their amount is kind of vibes based, but for now I went with 8, so that there's not too many byt there is enough to avoid visible repetition.
+
+> I think that moving everything related to *things-that-are-animated* could be moved to a transversal `animationSystem` (one that would cover both `ParticleSystem` for `SDL2` and the necessary animated postprocessing additions in `Railib`, but I have to decide how joined and how separated things should be. What's clear is that once this visual revamping phase is done, I'll have to get into refactoring mode once again. That's (coding) life.)
+
+Anyway, new attributes in `Raylib` to handle the new noise postprocessing, of which some initialization was added to the class constructor:
+```cpp
+// Postprocessing noise system
+static const int							GRAIN_TEXTURE_COUNT = 8;
+std::array<Texture2D, GRAIN_TEXTURE_COUNT>	grainTextures;
+int											currentGrainFrame;
+float										grainFrameTimer;
+float										grainFrameInterval;
+```
+
+At `init()`, the pattern generation is done as seen below. The process is quite ordinary and is built around the tools given by the library: generate a grain image via `GenImageWhiteNoise()`, load it as texture using by calling `LoadTextureFromImage()` (destroying the generated image in the process, as after it's texturization is no longer needed, using `UnloadImage()`), and storing it in the managing array:
+```cpp
+// noise pattern generation
+for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
+	// Unique seeding for varaition
+	Image grainImage = GenImageWhiteNoise(screenWidth, screenHeight, 0.75f);
+	grainTextures[i] = LoadTextureFromImage(grainImage);
+	UnloadImage(grainImage);
+}
+```
+
+> As it is my memory-handling, God-given mission of avoiding any leaks, the `Raylib` linked graphics class' destructor unloads all generated textures, of course.
+
+The pattern cycling, called from all rendering states (i.e., `menu`, `game`, `gameover`) is set up to be `50ms` (on deltaTime). Based on this interval, a randomly selected, pre-generated noise pattern is loaded. And thus we're noisy, as we should always be (conceptually, spiritually, politically speaking; please avoid being noisy around your peers (me) in your (my) working places).
+
+```cpp
+void RaylibGraphic::drawNoiseGrain() {
+	DrawTextureEx(grainTextures[currentGrainFrame], (Vector2){ 0.0f, 0.0f }, 0.0f, 1.0f, (Color){ 255, 255, 255, 20 });
+}
+```
+
+Next: The FOV (in my case, the isometric size) of the 3D camera was not being correctly calculated agains the game area size. This resulted in larger sizes being cropped, and small ones being rendered with too much offset and looking too tiny. I had to come up with a way of calculating the FOV value based on the sizes, but I didn't know exactly how to come up with a formula. I tested some size-FOV relations to get empirical data, getting this values:
+```
+Grid size 16 → FOV 40.0
+Grid size 36 → FOV 67.5
+Grid size 51 → FOV 100.0
+```
+There's a quadratic growth pattern here, which can be controlled with a coeficient extracted from this data. Basically, the quadratic formula `FOV = a*size² + b*size + c` needed specific `a`, `b`, and `c` fixed values, which can be extracted from solving a simple system of equations with the empiric data:
+```
+Point 1 (size=16, FOV=40):
+a(16)² + b(16) + c = 40
+256a + 16b + c = 40  ... equation (1)
+
+Point 2 (size=36, FOV=67.5):
+a(36)² + b(36) + c = 67.5
+1296a + 36b + c = 67.5  ... equation (2)
+
+Point 3 (size=51, FOV=100):
+a(51)² + b(51) + c = 100
+2601a + 51b + c = 100  ... equation (3)
+```
+
+Which resulted in the final calculation of the 3D camera's FOV, getting the visual results above it:
+```
+FOV = 0.022619*size² + 0.198810*size + 31.028571
+```
+
+<p float="left">
+  <img src="raylib_camera_small.png" alt="Raylib framing of a small size game arena" height=500>
+  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" vspace = 20>
+  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" vspace = 20>
+</p>
+
 
 <br>
 <br>
