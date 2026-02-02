@@ -259,7 +259,118 @@ FOV = 0.022619*size² + 0.198810*size + 31.028571
 
 Moving on, drawing the nibbler logo/title with cubes was *kinda* easy, honestly quite similar as drawing it with squares in `SDL2`, but what for some god forsaken reason took me a lot of time was the centering of it all. In the end it was the silliest thing imaginable, but I had an exahusting fight to make the isometric, cube based `nibbler` logo be correctly positioned in my game world. Which is even worse if we take into consideration that the `Raylib` render is the one that that gives me more freedom when drawing the title, without any need of managing what happens if the size is this or that size, as everything is based on the game world size and the initialized values for `cubeSize` and `separator`. Anyway, it is done, and it looks like this:
 
+<p float="left">
+  <img src="raylib_title.png" alt="Raylib title screen">
+</p>
 
+To achieve the isometric rendering of the instructions test I had to do some research. The research itself had a very easy first step, a google search of "Raylib draw text in 3D", which returned me this [link](https://www.raylib.com/examples/text/loader.html?name=text_3d_drawing). This is a community extension added to the base library (there are examples of `DrawText3D` in its documentation), which took me a while to process. Then I adapted an implementation of the pipeline in my `RaylibGraphic` class, like this:
+```cpp
+void RaylibGraphic::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint) {
+    int length = TextLength(text);
+    
+    float textOffsetY = cubeSize * 7;
+    float textOffsetX = -cubeSize * 7;
+    
+    float scale = fontSize / (float)font.baseSize;
+    
+    rlPushMatrix();
+    rlTranslatef(position.x, position.y, position.z);
+    rlRotatef(+90.0f, 0.0f, 1.0f, 0.0f);
+    
+    for (int i = 0; i < length;) {
+        int codepointByteCount = 0;
+        int codepoint = GetCodepoint(&text[i], &codepointByteCount);
+        int index = GetGlyphIndex(font, codepoint);
+        
+        if (codepoint == 0x3f) codepointByteCount = 1;
+        
+        if (codepoint == '\n') {
+            textOffsetY += fontSize + lineSpacing;
+            textOffsetX = 0.0f;
+        } else {
+            if ((codepoint != ' ') && (codepoint != '\t')) {
+                DrawTextCodepoint3D(font, codepoint, 
+                    (Vector3){ textOffsetX, 0.0f, textOffsetY },
+                    fontSize, backface, tint);
+            }
+            
+            if (font.glyphs[index].advanceX == 0) {
+                textOffsetX += (float)font.recs[index].width * scale + fontSpacing;
+            } else {
+                textOffsetX += (float)font.glyphs[index].advanceX * scale + fontSpacing;
+            }
+        }
+        
+        i += codepointByteCount;
+    }
+    
+    rlPopMatrix();
+}
+
+void RaylibGraphic::DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint) {
+	// Character index position in sprite font
+	int index = GetGlyphIndex(font, codepoint);
+	float scale = fontSize / (float)font.baseSize;
+	
+	// Character destination rectangle on screen
+	position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding) * scale;
+	position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding) * scale;
+	
+	// Character source rectangle from font texture atlas
+	Rectangle srcRec = { 
+		font.recs[index].x - (float)font.glyphPadding, 
+		font.recs[index].y - (float)font.glyphPadding,
+		font.recs[index].width + 2.0f * font.glyphPadding, 
+		font.recs[index].height + 2.0f * font.glyphPadding 
+	};
+	
+	float width = (float)(font.recs[index].width + 2.0f * font.glyphPadding) * scale;
+	float height = (float)(font.recs[index].height + 2.0f * font.glyphPadding) * scale;
+	
+	if (font.texture.id > 0) {
+		const float x = 0.0f;
+		const float y = 0.0f;
+		const float z = 0.0f;
+		
+		// Normalized texture coordinates of the glyph inside the font texture (0.0f -> 1.0f)
+		const float tx = srcRec.x / font.texture.width;
+		const float ty = srcRec.y / font.texture.height;
+		const float tw = (srcRec.x + srcRec.width) / font.texture.width;
+		const float th = (srcRec.y + srcRec.height) / font.texture.height;
+		
+		rlCheckRenderBatchLimit(4 + 4 * backface);
+		rlSetTexture(font.texture.id);
+		
+		rlPushMatrix();
+		rlTranslatef(position.x, position.y, position.z);
+		
+		rlBegin(RL_QUADS);
+		rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+		
+		// Front Face
+		rlNormal3f(0.0f, 1.0f, 0.0f);
+		rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+		rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+		rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+		
+		if (backface) {
+			// Back Face
+			rlNormal3f(0.0f, -1.0f, 0.0f);
+			rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+			rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+			rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+			rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		}
+		rlEnd();
+		rlPopMatrix();
+		
+		rlSetTexture(0);
+	}
+}
+```
+
+This let's me do exactly what I wanted: write in axonometric view, chosing the perspective and direction. At this point, I'm happy with the start screen in `Raylib` version, so I'll move on to the gameover screen. But first, some refactoring is due again. I have to dettach the text and title rendering from the main `RaylibGraphic` class and take them to helper classes, the same way as I did for `SDL2`. This will also mean some renaming in the `SDL2` related helpers, as I didn't prefix them and their contents correctly (thanks, me from the past, for messing it up again). I'll refactor and come back with some gameover stuff...
 
 <br>
 <br>
