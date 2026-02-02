@@ -4,7 +4,7 @@
 1. [Day Eleven Plan](#111-day-eleven-plan)
 2. [The Miracle of Standards](#112-the-miracle-of-standards)
 3. [The Graphic Gardens of Eden](#112-the-graphic-gardens-of-eden)
-4. [Encouraging, Which Is a Gerund]
+4. [Encouraging, Which Is a Gerund](#114-encouraging-which-is-a-gerund)
 
 <br>
 <br>
@@ -15,7 +15,9 @@ A considerable chunk of today's working time has gone towards job applications, 
 
 > *As I wrote this devlog, it seems that I fully adopted a snake + apple = garden of eden theme. By day 11, one must find ways to keep things joyful, right?*
 
-> *This log ended up being about more than one day: from the 11th to the 14th work session. I don't want to change too much stuff here, so I'll just make the 12th devlog tart with *Day Fifteen Plans*.
+> *This log ended up being about more than one day: from the 11th to the 15th work session. I don't want to change too much stuff here, so I'll just make the 12th devlog tart with *Day Sixteen Plans*.
+
+> *I've rewritten the last comment 3 or 4 times at this point. Looks like I greatly misjudged how much time the reworking of the general menu aesthetics across libraries would take. Staying in character, I must say.*
 
 <br>
 <br>
@@ -166,8 +168,8 @@ bool TextRenderer::renderText(const std::string& text, int x, int y, int offset,
 Moving forward, I decided to draw both the title and the gameover of the SDL2 realm by hand, using geometry functions. Two reasons for this: 1) absolute control of the looks across game sizes and resolutions, 2) couldn't find a font that satisfied my needs, and making one by myself would take too much time. The general idea with the typography for these is to write words with snake-like squiggles, i.e., letters that could be written by moving the snake. I arrived at a point which is satisfactory enough, but might still evolve during development:
 
 <p float="left">
-  <img src="SDL_title_big.png" alt="SDL intro screen in its big format" height=500>
-  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" height=500 hspace="40">
+  <img src="SDL_title_big.png" alt="SDL intro screen in its big format" width=350>
+  <img src="SDL_gameover_big.png" alt="SDL gameover screen in its big format" width=350 hspace="20">
 </p>
 
 There's no need to change typographies here because the words are, as I said, geometry based, so I can tweak the size of them by just changing the building block's size (`square` and `separator`). In `NCurses` I had to design two different ASCII based options because dynamically writting them char by char would literally end me. Aside from this, the title and gameover drawing functions in SDL were too big and, again, were cluttering my class code, so I made a secondary class `TitleHandler` to, you guessed it, handle the title renderings.
@@ -180,13 +182,195 @@ At this point, I had to go back to `NCurses` to redesign the titles and logos th
 
 <p float="left">
   <img src="NCurses_logo3_big.png" alt="NCurses nibbler logo in big format" height=500>
-  <img src="NCurses_logo3_small.png" alt="NCurses nibbler logo in small format" height=500 hspace="40">
+  <img src="NCurses_logo3_small.png" alt="NCurses nibbler logo in small format" height=500 hspace="20">
 </p>
 
 <p float="left">
   <img src="NCurses_gameover3_big.png" alt="NCurses game over screen in big format" height=500>
-  <img src="NCurses_gameover3_small.png" alt="NCurses game over screen in small format" height=500 hspace="40">
+  <img src="NCurses_gameover3_small.png" alt="NCurses game over screen in small format" height=500 hspace="20">
 </p>
+
+No, at least, lets rumble with `Raylib`. The first thing I want to do is enhancing the noise postprocessing pipeline, as it was quite shabby (i.e., *cutre*). I had a unique pattern slightly moving around the screen and I generally hated it, as what I wanted was something more akin to how a CRT/VHS noise would look like. In words, the noise would have to be completely changing patterns at each drawing frame, making it loook like *real* noise instead of some static overlay. This, on the other hand, came with possible dangers with the pattern management, because generating them at drawing time would be an anti-optimizing horrible decision. Instead of that, the patterns shoudl be generated at `init()`, and the drawing calls should pick between the set of generated patterns. Finding a sweet spot for their amount is kind of vibes based, but for now I went with 8, so that there's not too many byt there is enough to avoid visible repetition.
+
+> I think that moving everything related to *things-that-are-animated* could be moved to a transversal `animationSystem` (one that would cover both `ParticleSystem` for `SDL2` and the necessary animated postprocessing additions in `Railib`, but I have to decide how joined and how separated things should be. What's clear is that once this visual revamping phase is done, I'll have to get into refactoring mode once again. That's (coding) life.)
+
+Anyway, new attributes in `Raylib` to handle the new noise postprocessing, of which some initialization was added to the class constructor:
+```cpp
+// Postprocessing noise system
+static const int							GRAIN_TEXTURE_COUNT = 8;
+std::array<Texture2D, GRAIN_TEXTURE_COUNT>	grainTextures;
+int											currentGrainFrame;
+float										grainFrameTimer;
+float										grainFrameInterval;
+```
+
+At `init()`, the pattern generation is done as seen below. The process is quite ordinary and is built around the tools given by the library: generate a grain image via `GenImageWhiteNoise()`, load it as texture using by calling `LoadTextureFromImage()` (destroying the generated image in the process, as after it's texturization is no longer needed, using `UnloadImage()`), and storing it in the managing array:
+```cpp
+// noise pattern generation
+for (int i = 0; i < GRAIN_TEXTURE_COUNT; i++) {
+	// Unique seeding for varaition
+	Image grainImage = GenImageWhiteNoise(screenWidth, screenHeight, 0.75f);
+	grainTextures[i] = LoadTextureFromImage(grainImage);
+	UnloadImage(grainImage);
+}
+```
+
+> As it is my memory-handling, God-given mission of avoiding any leaks, the `Raylib` linked graphics class' destructor unloads all generated textures, of course.
+
+The pattern cycling, called from all rendering states (i.e., `menu`, `game`, `gameover`) is set up to be `50ms` (on deltaTime). Based on this interval, a randomly selected, pre-generated noise pattern is loaded. And thus we're noisy, as we should always be (conceptually, spiritually, politically speaking; please avoid being noisy around your peers (me) in your (my) working places).
+
+```cpp
+void RaylibGraphic::drawNoiseGrain() {
+	DrawTextureEx(grainTextures[currentGrainFrame], (Vector2){ 0.0f, 0.0f }, 0.0f, 1.0f, (Color){ 255, 255, 255, 20 });
+}
+```
+
+Next: The FOV (in my case, the isometric size) of the 3D camera was not being correctly calculated agains the game area size. This resulted in larger sizes being cropped, and small ones being rendered with too much offset and looking too tiny. I had to come up with a way of calculating the FOV value based on the sizes, but I didn't know exactly how to come up with a formula. I tested some size-FOV relations to get empirical data, getting this values:
+```
+Grid size 16 → FOV 40.0
+Grid size 36 → FOV 67.5
+Grid size 51 → FOV 100.0
+```
+There's a quadratic growth pattern here, which can be controlled with a coeficient extracted from this data. Basically, the quadratic formula `FOV = a*size² + b*size + c` needed specific `a`, `b`, and `c` fixed values, which can be extracted from solving a simple system of equations with the empiric data:
+```
+Point 1 (size=16, FOV=40):
+a(16)² + b(16) + c = 40
+256a + 16b + c = 40  ... equation (1)
+
+Point 2 (size=36, FOV=67.5):
+a(36)² + b(36) + c = 67.5
+1296a + 36b + c = 67.5  ... equation (2)
+
+Point 3 (size=51, FOV=100):
+a(51)² + b(51) + c = 100
+2601a + 51b + c = 100  ... equation (3)
+```
+
+Which resulted in the final calculation of the 3D camera's FOV, getting the visual results above it:
+```
+FOV = 0.022619*size² + 0.198810*size + 31.028571
+```
+
+<p float="left">
+  <img src="raylib_camera_small.png" alt="Raylib framing of a small size game arena" height=500>
+  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" height=500 vspace=20>
+  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" height=500 vspace=20>
+</p>
+
+Moving on, drawing the nibbler logo/title with cubes was *kinda* easy, honestly quite similar as drawing it with squares in `SDL2`, but what for some god forsaken reason took me a lot of time was the centering of it all. In the end it was the silliest thing imaginable, but I had an exahusting fight to make the isometric, cube based `nibbler` logo be correctly positioned in my game world. Which is even worse if we take into consideration that the `Raylib` render is the one that that gives me more freedom when drawing the title, without any need of managing what happens if the size is this or that size, as everything is based on the game world size and the initialized values for `cubeSize` and `separator`. Anyway, it is done, and it looks like this:
+
+<p float="left">
+  <img src="raylib_title.png" alt="Raylib title screen">
+</p>
+
+To achieve the isometric rendering of the instructions test I had to do some research. The research itself had a very easy first step, a google search of "Raylib draw text in 3D", which returned me this [link](https://www.raylib.com/examples/text/loader.html?name=text_3d_drawing). This is a community extension added to the base library (there are examples of `DrawText3D` in its documentation), which took me a while to process. Then I adapted an implementation of the pipeline in my `RaylibGraphic` class, like this:
+```cpp
+void RaylibGraphic::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint) {
+    int length = TextLength(text);
+    
+    float textOffsetY = cubeSize * 7;
+    float textOffsetX = -cubeSize * 7;
+    
+    float scale = fontSize / (float)font.baseSize;
+    
+    rlPushMatrix();
+    rlTranslatef(position.x, position.y, position.z);
+    rlRotatef(+90.0f, 0.0f, 1.0f, 0.0f);
+    
+    for (int i = 0; i < length;) {
+        int codepointByteCount = 0;
+        int codepoint = GetCodepoint(&text[i], &codepointByteCount);
+        int index = GetGlyphIndex(font, codepoint);
+        
+        if (codepoint == 0x3f) codepointByteCount = 1;
+        
+        if (codepoint == '\n') {
+            textOffsetY += fontSize + lineSpacing;
+            textOffsetX = 0.0f;
+        } else {
+            if ((codepoint != ' ') && (codepoint != '\t')) {
+                DrawTextCodepoint3D(font, codepoint, 
+                    (Vector3){ textOffsetX, 0.0f, textOffsetY },
+                    fontSize, backface, tint);
+            }
+            
+            if (font.glyphs[index].advanceX == 0) {
+                textOffsetX += (float)font.recs[index].width * scale + fontSpacing;
+            } else {
+                textOffsetX += (float)font.glyphs[index].advanceX * scale + fontSpacing;
+            }
+        }
+        
+        i += codepointByteCount;
+    }
+    
+    rlPopMatrix();
+}
+
+void RaylibGraphic::DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint) {
+	// Character index position in sprite font
+	int index = GetGlyphIndex(font, codepoint);
+	float scale = fontSize / (float)font.baseSize;
+	
+	// Character destination rectangle on screen
+	position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding) * scale;
+	position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding) * scale;
+	
+	// Character source rectangle from font texture atlas
+	Rectangle srcRec = { 
+		font.recs[index].x - (float)font.glyphPadding, 
+		font.recs[index].y - (float)font.glyphPadding,
+		font.recs[index].width + 2.0f * font.glyphPadding, 
+		font.recs[index].height + 2.0f * font.glyphPadding 
+	};
+	
+	float width = (float)(font.recs[index].width + 2.0f * font.glyphPadding) * scale;
+	float height = (float)(font.recs[index].height + 2.0f * font.glyphPadding) * scale;
+	
+	if (font.texture.id > 0) {
+		const float x = 0.0f;
+		const float y = 0.0f;
+		const float z = 0.0f;
+		
+		// Normalized texture coordinates of the glyph inside the font texture (0.0f -> 1.0f)
+		const float tx = srcRec.x / font.texture.width;
+		const float ty = srcRec.y / font.texture.height;
+		const float tw = (srcRec.x + srcRec.width) / font.texture.width;
+		const float th = (srcRec.y + srcRec.height) / font.texture.height;
+		
+		rlCheckRenderBatchLimit(4 + 4 * backface);
+		rlSetTexture(font.texture.id);
+		
+		rlPushMatrix();
+		rlTranslatef(position.x, position.y, position.z);
+		
+		rlBegin(RL_QUADS);
+		rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+		
+		// Front Face
+		rlNormal3f(0.0f, 1.0f, 0.0f);
+		rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+		rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+		rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+		
+		if (backface) {
+			// Back Face
+			rlNormal3f(0.0f, -1.0f, 0.0f);
+			rlTexCoord2f(tx, ty); rlVertex3f(x, y, z);
+			rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);
+			rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);
+			rlTexCoord2f(tx, th); rlVertex3f(x, y, z + height);
+		}
+		rlEnd();
+		rlPopMatrix();
+		
+		rlSetTexture(0);
+	}
+}
+```
+
+This let's me do exactly what I wanted: write in axonometric view, chosing the perspective and direction. At this point, I'm happy with the start screen in `Raylib` version, so I'll move on to the gameover screen. But first, some refactoring is due again. I have to dettach the text and title rendering from the main `RaylibGraphic` class and take them to helper classes, the same way as I did for `SDL2`. This will also mean some renaming in the `SDL2` related helpers, as I didn't prefix them and their contents correctly (thanks, me from the past, for messing it up again). I'll refactor and come back with some gameover stuff...
 
 <br>
 <br>

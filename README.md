@@ -290,7 +290,7 @@ The full devlogs are in `docs/` and chronicle every technical decision, bug fix,
 ### 🔧 Visual Polish (In Progress)
 
 **Start Menu & Game Over Screens**
-- [ ] Refine SDL2 menu graphics (currently placeholder text)
+- [x] Refine SDL2 menu graphics (currently placeholder text)
 - [ ] Design Raylib 3D menu scene (maybe floating title?)
 - [ ] Unify game over screen aesthetics across all three libraries
 - [ ] Add animated transitions between menu and gameplay
@@ -298,8 +298,8 @@ The full devlogs are in `docs/` and chronicle every technical decision, bug fix,
 
 **NCurses Specific**
 - [x] ~~Fix color management for custom palettes~~ (**DONE**: removed `A_BOLD` flag interference)
-- [ ] Optimize ASCII art loading (currently reads files every frame)
-- [ ] Add small-screen game over title variant
+- [x] Optimize ASCII art loading (currently reads files every frame)
+- [x] Add small-screen game over title variant
 
 **SDL2 Specific**
 - [ ] Implement sprite sheets instead of colored rectangles

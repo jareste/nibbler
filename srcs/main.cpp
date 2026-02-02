@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 		"./nibbler_sdl.so",
 		"./nibbler_raylib.so"
 	};
-	int currentLib = 1;
+	int currentLib = 2;
 
 	LibraryManager gfxLib;
 	if (!gfxLib.load(libs[currentLib].data()))
