@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include "colors.h"
+#include "DataStructs.hpp"
 
 static constexpr SDL_Color customWhite{255, 248, 227, 255};  // Off-white
 static constexpr SDL_Color customGray{136, 136, 136, 255};   // Gray
@@ -17,24 +18,28 @@ private:
 	TTF_Font* mainFont;
 	TTF_Font* smallFont;
 	bool initialized;
+	int windowWidth;
+	int windowHeight;
+	int cellSize;
+	int borderOffset;
+	int square;
+
+	bool drawText(const std::string& text, int x, int y, int offset, 
+	              TTF_Font* fontToUse, SDL_Color color, bool centered = false);
+
+	void drawInstruction(int centerX, int centerY, int& offset,
+	                     const std::string& labelText, const std::string& dotText,
+	                     bool smallMode, TTF_Font* currentFont);
 
 public:
 	SDLTextRenderer(SDL_Renderer* renderer);
 	~SDLTextRenderer();
 
-	bool init(int windowWidth);
+	bool init(int windowWidth, int windowHeight, int cellSize, int borderOffset);
 
-	bool renderText(const std::string& text, int x, int y, int offset, 
-	                TTF_Font* fontToUse, SDL_Color color, bool centered = false);
-
-	void renderInstruction(int centerX, int centerY, int& offset,
-	                       const std::string& labelText, const std::string& dotText,
-	                       bool smallMode, TTF_Font* currentFont);
-	
-	void renderInstructions(int centerX, int centerY, bool smallMode, int square);
-
-	void renderScore(int centerX, int centerY, int score, bool smallMode, int square);
-	void renderRetryPrompt(int centerX, int centerY, bool smallMode, int square);
+	void drawInstructions(int centerX, int centerY);
+	void drawScore(const GameState& state, int centerX, int centerY);
+	void drawRetryPrompt(int centerX, int centerY);
 
 	TTF_Font* getMainFont() const { return mainFont; }
 	TTF_Font* getSmallFont() const { return smallFont; }

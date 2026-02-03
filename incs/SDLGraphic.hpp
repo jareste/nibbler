@@ -74,9 +74,7 @@ class SDLGraphic : public IGraphic {
 		// Drawing functions
 		void drawSnake(const GameState &state);
 		void drawFood(const GameState &state);
-		void drawBorder(int thickness);
-		void drawInstructions(int centerX, int centerY);
-		void drawRetryText(const GameState &state, int centerX, int centerY);	public:
+		void drawBorder(int thickness);	public:
 		SDLGraphic();
 		SDLGraphic(const SDLGraphic&) = delete;
 		SDLGraphic &operator=(const SDLGraphic&) = delete;

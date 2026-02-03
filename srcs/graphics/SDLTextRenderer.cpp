@@ -1,7 +1,8 @@
 #include "../incs/SDLTextRenderer.hpp"
 
 SDLTextRenderer::SDLTextRenderer(SDL_Renderer* renderer) 
-	: renderer(renderer), mainFont(nullptr), smallFont(nullptr), initialized(false) {
+	: renderer(renderer), mainFont(nullptr), smallFont(nullptr), initialized(false),
+	  windowWidth(0), windowHeight(0), cellSize(0), borderOffset(0), square(0) {
 }
 
 SDLTextRenderer::~SDLTextRenderer() {
@@ -15,7 +16,13 @@ SDLTextRenderer::~SDLTextRenderer() {
 	}
 }
 
-bool SDLTextRenderer::init(int windowWidth) {
+bool SDLTextRenderer::init(int width, int height, int cell, int border) {
+	windowWidth = width;
+	windowHeight = height;
+	cellSize = cell;
+	borderOffset = border;
+	square = cellSize;
+
 	int mainSize = (windowWidth < 1800) ? 34 : 34;
 	int smallSize = (windowWidth < 1800) ? 24 : 24;
 
@@ -25,7 +32,7 @@ bool SDLTextRenderer::init(int windowWidth) {
 		// Fallback to system font
 		mainFont = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", mainSize);
 		if (!mainFont) {
-			std::cerr << "Main font loading error: " << TTF_GetError() << std::endl;
+			std::cerr << "[SDL Text Renderer] Failed to load main font: " << TTF_GetError() << std::endl;
 			return false;
 		}
 	}
@@ -36,8 +43,8 @@ bool SDLTextRenderer::init(int windowWidth) {
 		// Fallback to system font
 		smallFont = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", smallSize);
 		if (!smallFont) {
-			std::cerr << "Small font loading error: " << TTF_GetError() << std::endl;
-			// Use main font as fallback for small font
+			std::cerr << "[SDL Text Renderer] Failed to load small font: " << TTF_GetError() << std::endl;
+			// Use main font as fallback
 			smallFont = mainFont;
 		}
 	}
@@ -46,19 +53,21 @@ bool SDLTextRenderer::init(int windowWidth) {
 	return initialized;
 }
 
-bool SDLTextRenderer::renderText(const std::string& text, int x, int y, int offset, 
+bool SDLTextRenderer::drawText(const std::string& text, int x, int y, int offset, 
 								TTF_Font* fontToUse, SDL_Color color, bool centered) {
-	if (!fontToUse || !initialized) return false;
+	if (!fontToUse || !initialized)
+		return false;
 
 	SDL_Surface* surface = TTF_RenderUTF8_Blended(fontToUse, text.c_str(), color);
 	if (!surface) {
-		std::cerr << "Text render error: " << TTF_GetError() << std::endl;
+		std::cerr << "[SDL Text Renderer] Failed to render text: " << TTF_GetError() << std::endl;
 		return false;
 	}
 
 	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 	if (!texture) {
 		SDL_FreeSurface(surface);
+		std::cerr << "[SDL Text Renderer] Failed to create texture: " << SDL_GetError() << std::endl;
 		return false;
 	}
 
@@ -66,12 +75,12 @@ bool SDLTextRenderer::renderText(const std::string& text, int x, int y, int offs
 	if (centered) {
 		destRect = {
 			x - (surface->w / 2),
-			y - (surface->h / 2) + offset,
+			y + offset - (surface->h / 2),
 			surface->w,
 			surface->h
 		};
 	} else {
-		destRect = { x, y + offset, surface->w, surface->h };
+		destRect = {x, y + offset, surface->w, surface->h};
 	}
 
 	SDL_RenderCopy(renderer, texture, nullptr, &destRect);
@@ -82,25 +91,28 @@ bool SDLTextRenderer::renderText(const std::string& text, int x, int y, int offs
 	return true;
 }
 
-void SDLTextRenderer::renderInstruction(int centerX, int centerY, int& offset,
-                                     const std::string& labelText, const std::string& dotText,
-                                     bool smallMode, TTF_Font* currentFont) {
-	if (!initialized) return;
+void SDLTextRenderer::drawInstruction(int centerX, int centerY, int& offset,
+                                       const std::string& labelText, const std::string& dotText,
+                                       bool smallMode, TTF_Font* currentFont) {
+	if (!initialized)
+		return;
 
 	// text -> white
 	SDL_Color textColor = customWhite;
-	renderText(labelText, centerX, centerY, offset, currentFont, textColor, true);
+	drawText(labelText, centerX, centerY, offset, currentFont, textColor, true);
 
 	// Dots -> gray
 	textColor = customGray;
-	renderText(dotText, centerX, centerY, offset, currentFont, textColor, true);
+	drawText(dotText, centerX, centerY, offset, currentFont, textColor, true);
 
-	offset += (smallMode ? 40 : 90);  // isntructions line offset
+	offset += (smallMode ? 40 : 90);  // instructions line offset
 }
 
-void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, int square) {
-	if (!initialized) return;
+void SDLTextRenderer::drawInstructions(int centerX, int centerY) {
+	if (!initialized)
+		return;
 
+	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
 	int offset = square * 7;
 	
@@ -111,9 +123,9 @@ void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMod
 	std::string instructionTextB = smallMode ?
 		"         ··········     " :
 		"         ············     ";
-	renderInstruction(centerX, centerY, offset, 
-	                  instructionTextA, instructionTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                instructionTextA, instructionTextB, 
+	                smallMode, currentFont);
 	
 	// Move instruction
 	instructionTextA = smallMode ?
@@ -122,9 +134,9 @@ void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMod
 	instructionTextB = smallMode ?
 		"           ·········    " :
 		"           ············    ";
-	renderInstruction(centerX, centerY, offset, 
-	                  instructionTextA, instructionTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                instructionTextA, instructionTextB, 
+	                smallMode, currentFont);
 
 	// Travel instruction
 	instructionTextA = smallMode ?
@@ -133,9 +145,9 @@ void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMod
 	instructionTextB = smallMode ?
 		"    /   /    ·····      " :
 		"    /   /    ········      ";
-	renderInstruction(centerX, centerY, offset, 
-	                  instructionTextA, instructionTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                instructionTextA, instructionTextB, 
+	                smallMode, currentFont);
 
 	// Quit instruction
 	instructionTextA = smallMode ?
@@ -144,66 +156,109 @@ void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMod
 	instructionTextB = smallMode ?
 		"    /      ·········    " :
 		"    /      ···········    ";
-	renderInstruction(centerX, centerY, offset, 
-	                  instructionTextA, instructionTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                instructionTextA, instructionTextB, 
+	                smallMode, currentFont);
 }
 
-void SDLTextRenderer::renderScore(int centerX, int centerY, int score, bool smallMode, int square) {
-	if (!initialized) return;
+void SDLTextRenderer::drawScore(const GameState& state, int centerX, int centerY) {
+	if (!initialized)
+		return;
 
+	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int offset = square * 8;
+	int yOffset = square * 8;
 	
-	std::string scoreNum = std::to_string(score);
-	std::string appleWord = (score == 1) ? "APPLE" : "APPLES";
+	std::string scoreNum = std::to_string(state.score);
+	std::string appleWord = (state.score == 1) ? "APPLE" : "APPLES";
 	
-	int spacing = 10;
+	int wordSpacing = 10;
+	
+	SDL_Surface* youSurface = TTF_RenderUTF8_Blended(currentFont, "YOU", lightBlue);
+	SDL_Surface* ateSurface = TTF_RenderUTF8_Blended(currentFont, "ATE", customWhite);
+	SDL_Surface* scoreSurface = TTF_RenderUTF8_Blended(currentFont, scoreNum.c_str(), lightRed);
+	SDL_Surface* appleSurface = TTF_RenderUTF8_Blended(currentFont, appleWord.c_str(), customWhite);
+	
+	if (!youSurface || !ateSurface || !scoreSurface || !appleSurface) {
+		if (youSurface) SDL_FreeSurface(youSurface);
+		if (ateSurface) SDL_FreeSurface(ateSurface);
+		if (scoreSurface) SDL_FreeSurface(scoreSurface);
+		if (appleSurface) SDL_FreeSurface(appleSurface);
+		return;
+	}
+	
+	int totalWidth = youSurface->w + wordSpacing + ateSurface->w + wordSpacing + 
+	                 scoreSurface->w + wordSpacing + appleSurface->w;
+	
+	int startX = centerX - (totalWidth / 2);
+	int currentX = startX;
 	
 	// "YOU" - blue
-	SDL_Surface* youSurface = TTF_RenderUTF8_Blended(currentFont, "YOU", lightBlue);
-
-	if (youSurface) {
-		int youWidth = youSurface->w;
-		SDL_FreeSurface(youSurface);
-		
-		// "ATE" - white
-		SDL_Surface* ateSurface = TTF_RenderUTF8_Blended(currentFont, "ATE", customWhite);
-		int ateWidth = ateSurface ? ateSurface->w : 0;
-		if (ateSurface) SDL_FreeSurface(ateSurface);
-		
-		// Score number - red
-		SDL_Surface* scoreSurface = TTF_RenderUTF8_Blended(currentFont, scoreNum.c_str(), lightRed);
-		int scoreWidth = scoreSurface ? scoreSurface->w : 0;
-		if (scoreSurface) SDL_FreeSurface(scoreSurface);
-		
-		// Apple word - white
-		SDL_Surface* appleSurface = TTF_RenderUTF8_Blended(currentFont, appleWord.c_str(), customWhite);
-		int appleWidth = appleSurface ? appleSurface->w : 0;
-		if (appleSurface) SDL_FreeSurface(appleSurface);
-		
-		int totalWidth = youWidth + spacing + ateWidth + spacing + scoreWidth + spacing + appleWidth;
-		
-		int startX = centerX - (totalWidth / 2);
-		
-		renderText("YOU", startX, centerY, offset, currentFont, lightBlue, false);
-		startX += youWidth + spacing;
-		
-		renderText("ATE", startX, centerY, offset, currentFont, customWhite, false);
-		startX += ateWidth + spacing;
-		
-		renderText(scoreNum, startX, centerY, offset, currentFont, lightRed, false);
-		startX += scoreWidth + spacing;
-		
-		renderText(appleWord, startX, centerY, offset, currentFont, customWhite, false);
+	SDL_Texture* youTexture = SDL_CreateTextureFromSurface(renderer, youSurface);
+	if (youTexture) {
+		SDL_Rect youRect = {
+			currentX,
+			centerY + yOffset - (youSurface->h / 2),
+			youSurface->w,
+			youSurface->h
+		};
+		SDL_RenderCopy(renderer, youTexture, nullptr, &youRect);
+		SDL_DestroyTexture(youTexture);
 	}
+	currentX += youSurface->w + wordSpacing;
+	SDL_FreeSurface(youSurface);
+	
+	// "ATE" - white
+	SDL_Texture* ateTexture = SDL_CreateTextureFromSurface(renderer, ateSurface);
+	if (ateTexture) {
+		SDL_Rect ateRect = {
+			currentX,
+			centerY + yOffset - (ateSurface->h / 2),
+			ateSurface->w,
+			ateSurface->h
+		};
+		SDL_RenderCopy(renderer, ateTexture, nullptr, &ateRect);
+		SDL_DestroyTexture(ateTexture);
+	}
+	currentX += ateSurface->w + wordSpacing;
+	SDL_FreeSurface(ateSurface);
+	
+	// Score - red
+	SDL_Texture* scoreTexture = SDL_CreateTextureFromSurface(renderer, scoreSurface);
+	if (scoreTexture) {
+		SDL_Rect scoreRect = {
+			currentX,
+			centerY + yOffset - (scoreSurface->h / 2),
+			scoreSurface->w,
+			scoreSurface->h
+		};
+		SDL_RenderCopy(renderer, scoreTexture, nullptr, &scoreRect);
+		SDL_DestroyTexture(scoreTexture);
+	}
+	currentX += scoreSurface->w + wordSpacing;
+	SDL_FreeSurface(scoreSurface);
+	
+	// "APPLE(S)" - white
+	SDL_Texture* appleTexture = SDL_CreateTextureFromSurface(renderer, appleSurface);
+	if (appleTexture) {
+		SDL_Rect appleRect = {
+			currentX,
+			centerY + yOffset - (appleSurface->h / 2),
+			appleSurface->w,
+			appleSurface->h
+		};
+		SDL_RenderCopy(renderer, appleTexture, nullptr, &appleRect);
+		SDL_DestroyTexture(appleTexture);
+	}
+	SDL_FreeSurface(appleSurface);
 }
 
-void SDLTextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode, int square) {
-	if (!initialized) return;
+void SDLTextRenderer::drawRetryPrompt(int centerX, int centerY) {
+	if (!initialized)
+		return;
 
+	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-
 	int offset = square * 10.5;
 	
 	// Retry instructions
@@ -214,9 +269,9 @@ void SDLTextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode
 		"         ·········     " :
 		"        ·············    ";
 	
-	renderInstruction(centerX, centerY, offset, 
-	                  gameoverTextA, gameoverTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                gameoverTextA, gameoverTextB, 
+	                smallMode, currentFont);
 
 	// Quit instruction
 	gameoverTextA = smallMode ?
@@ -226,7 +281,7 @@ void SDLTextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode
 		"    /       ·········     " :
 		"    /      ···········    ";
 	
-	renderInstruction(centerX, centerY, offset, 
-	                  gameoverTextA, gameoverTextB, 
-	                  smallMode, currentFont);
+	drawInstruction(centerX, centerY, offset, 
+	                gameoverTextA, gameoverTextB, 
+	                smallMode, currentFont);
 }

@@ -58,7 +58,7 @@ void SDLGraphic::init(int width, int height) {
 	
 	// Initialize text renderer
 	textRenderer = std::make_unique<SDLTextRenderer>(renderer);
-	if (!textRenderer->init(windowWidth)) {
+	if (!textRenderer->init(windowWidth, windowHeight, cellSize, borderOffset)) {
 		std::cerr << "TextRenderer initialization failed" << std::endl;
 	}
 	
@@ -309,13 +309,6 @@ void SDLGraphic::renderTunnelEffect() {
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 }
 
-void SDLGraphic::drawInstructions(int centerX, int centerY) {
-	if (!textRenderer || !textRenderer->isInitialized()) return;
-
-	bool smallMode = ((windowWidth / 2) < 900);
-	textRenderer->renderInstructions(centerX, centerY, smallMode, square);
-}
-
 void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
 	(void)state;
 	
@@ -353,17 +346,7 @@ void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
 	SDL_RenderPresent(renderer);
 }
 
-void SDLGraphic::drawRetryText(const GameState &state, int centerX, int centerY) {
-	if (!textRenderer || !textRenderer->isInitialized()) return;
 
-	bool smallMode = ((windowWidth / 2) < 900);
-	
-	// Render score
-	textRenderer->renderScore(centerX, centerY, state.score, smallMode, square);
-	
-	// Render retry prompt
-	textRenderer->renderRetryPrompt(centerX, centerY, smallMode, square);
-}
 
 void SDLGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	(void)state;
@@ -388,7 +371,8 @@ void SDLGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	int centerY = windowHeight / 2;
 	
 	titleHandler->renderGameOver(centerX, centerY, square, sep, customWhite);
-	drawRetryText(state, centerX, centerY);
+	textRenderer->drawScore(state, centerX, centerY);
+	textRenderer->drawRetryPrompt(centerX, centerY);
 	
 	SDL_RenderPresent(renderer);
 }
