@@ -1,5 +1,6 @@
 #pragma once
 #include <raylib.h>
+#include "DataStructs.hpp"
 
 // Forward declaration to avoid circular dependency
 class RaylibGraphic;
@@ -23,4 +24,6 @@ class RaylibTextRenderer {
 		void drawInstructions();
 		void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);
 		void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
+
+		void drawRetry(const GameState& state);
 };

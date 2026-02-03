@@ -160,3 +160,7 @@ void RaylibTextRenderer::DrawText3D(Font font, const char *text, Vector3 positio
     
     rlPopMatrix();
 }
+
+void RaylibTextRenderer::drawRetry(const GameState& state) {
+	(void)state;
+}

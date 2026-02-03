@@ -57,16 +57,16 @@ void SDLGraphic::init(int width, int height) {
 	}
 	
 	// Initialize text renderer
-	textRenderer = std::make_unique<TextRenderer>(renderer);
+	textRenderer = std::make_unique<SDLTextRenderer>(renderer);
 	if (!textRenderer->init(windowWidth)) {
 		std::cerr << "TextRenderer initialization failed" << std::endl;
 	}
 	
 	// Initialize title handler
-	titleHandler = std::make_unique<TitleHandler>(renderer);
+	titleHandler = std::make_unique<SDLTitleHandler>(renderer);
 	
 	// Initialize particle system
-	particleSystem = std::make_unique<ParticleSystem>(renderer, width, height, cellSize, borderOffset);
+	particleSystem = std::make_unique<SDLParticleSystem>(renderer, width, height, cellSize, borderOffset);
 	
 	borderLines.reserve(100);
 	
@@ -348,7 +348,7 @@ void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
 	int centerY = windowHeight / 2;
 
 	titleHandler->renderTitle(centerX, centerY, square, sep, customWhite, lightBlue, lightRed);
-	drawInstructions(centerX, centerY);
+	textRenderer->drawInstructions(centerX, centerY);
 	
 	SDL_RenderPresent(renderer);
 }

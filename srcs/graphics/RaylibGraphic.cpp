@@ -327,15 +327,14 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	
 	BeginDrawing();
 	ClearBackground(customBlack);
+
+	BeginMode3D(camera);
 	
-	// TODO: Implement proper Raylib game over screen
-	DrawText("GAME OVER", screenWidth/2 - 150, screenHeight/2 - 50, 50, customWhite);
-	
-	char scoreText[50];
-	snprintf(scoreText, sizeof(scoreText), "Score: %d", state.score);
-	DrawText(scoreText, screenWidth/2 - 80, screenHeight/2 + 20, 30, customWhite);
-	DrawText("Press ENTER to restart", screenWidth/2 - 150, screenHeight/2 + 80, 25, customWhite);
-	
+	titleHandler->drawGameover();
+	textRenderer->drawRetry(state);
+
+	EndMode3D();
+
 	drawNoiseGrain();
 	
 	EndDrawing();

@@ -1,5 +1,4 @@
-#ifndef TEXTRENDERER_HPP
-#define TEXTRENDERER_HPP
+#pragma once
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
@@ -12,7 +11,7 @@ static constexpr SDL_Color customGray{136, 136, 136, 255};   // Gray
 static constexpr SDL_Color lightRed{254, 74, 81, 255};		 // light red - food
 static constexpr SDL_Color lightBlue{70, 130, 180, 255};	// light blue - snake
 
-class TextRenderer {
+class SDLTextRenderer {
 private:
 	SDL_Renderer* renderer;
 	TTF_Font* mainFont;
@@ -20,8 +19,8 @@ private:
 	bool initialized;
 
 public:
-	TextRenderer(SDL_Renderer* renderer);
-	~TextRenderer();
+	SDLTextRenderer(SDL_Renderer* renderer);
+	~SDLTextRenderer();
 
 	bool init(int windowWidth);
 
@@ -41,5 +40,3 @@ public:
 	TTF_Font* getSmallFont() const { return smallFont; }
 	bool isInitialized() const { return initialized; }
 };
-
-#endif

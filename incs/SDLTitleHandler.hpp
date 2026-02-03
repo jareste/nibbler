@@ -1,10 +1,9 @@
-#ifndef TITLEHANDLER_HPP
-#define TITLEHANDLER_HPP
+#pragma once
 
 #include <SDL2/SDL.h>
 #include <vector>
 
-class TitleHandler {
+class SDLTitleHandler {
 private:
 	SDL_Renderer* renderer;
 	
@@ -12,11 +11,11 @@ private:
 	void drawRects(const std::vector<SDL_Rect>& rects, SDL_Color color);
 
 public:
-	TitleHandler(SDL_Renderer* renderer);
-	~TitleHandler() = default;
+	SDLTitleHandler(SDL_Renderer* renderer);
+	~SDLTitleHandler() = default;
 
 	void renderTitle(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color blue, SDL_Color red);
 	void renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white);
-};
 
-#endif
+	void drawGameOver();
+};

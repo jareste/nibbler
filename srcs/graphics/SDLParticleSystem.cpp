@@ -1,4 +1,4 @@
-#include "../../incs/ParticleSystem.hpp"
+#include "../../incs/SDLParticleSystem.hpp"
 
 // Particle constructors
 Particle::Particle(float px, float py, float minSize, float maxSize, float minLifetime, float maxLifetime)
@@ -20,8 +20,8 @@ Particle::Particle(float px, float py, float minSize, float maxSize, float minLi
 	rotationSpeed = -50.0f + static_cast<float>(rand()) / static_cast<float>(RAND_MAX) * 100.0f;  // -50 to +50 deg/s for explosions
 }
 
-// ParticleSystem implementation
-ParticleSystem::ParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int cell, int border)
+// SDLParticleSystem implementation
+SDLParticleSystem::SDLParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int cell, int border)
 	: renderer(renderer), gridWidth(gridW), gridHeight(gridH), cellSize(cell), borderOffset(border),
 		maxDustDensity(50), dustSpawnInterval(0.1f), dustSpawnTimer(0.0f),
 		dustMinSize(2.0f), dustMaxSize(15.0f), dustMinLifetime(3.0f), dustMaxLifetime(5.0f),
@@ -29,11 +29,11 @@ ParticleSystem::ParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int
 	particles.reserve(maxDustDensity);
 }
 
-ParticleSystem::~ParticleSystem() {
+SDLParticleSystem::~SDLParticleSystem() {
 	particles.clear();
 }
 
-void ParticleSystem::update(float deltaTime) {
+void SDLParticleSystem::update(float deltaTime) {
 	// Handle dust particle spawning
 	dustSpawnTimer += deltaTime;
 	if (dustSpawnTimer >= dustSpawnInterval) {
@@ -63,7 +63,7 @@ void ParticleSystem::update(float deltaTime) {
 	);
 }
 
-void ParticleSystem::render() {
+void SDLParticleSystem::render() {
 	for (const auto& particle : particles) {
 		// Fade out based on lifetime progress
 		float progress = particle.age / particle.lifetime;
@@ -81,7 +81,7 @@ void ParticleSystem::render() {
 	}
 }
 
-void ParticleSystem::spawnDustParticle() {
+void SDLParticleSystem::spawnDustParticle() {
 	// max density check
 	int dustCount = 0;
 	for (const auto& p : particles) {
@@ -101,7 +101,7 @@ void ParticleSystem::spawnDustParticle() {
 	particles.emplace_back(x, y, dustMinSize, dustMaxSize, dustMinLifetime, dustMaxLifetime);
 }
 
-void ParticleSystem::spawnExplosion(float x, float y, int count) {
+void SDLParticleSystem::spawnExplosion(float x, float y, int count) {
 	for (int i = 0; i < count; i++) {
 
 		float angle = (rand() % 360) * 3.14159f / 180.0f;
@@ -115,7 +115,7 @@ void ParticleSystem::spawnExplosion(float x, float y, int count) {
 	}
 }
 
-void ParticleSystem::spawnDirectedParticles(float x, float y, int count, float direction, 
+void SDLParticleSystem::spawnDirectedParticles(float x, float y, int count, float direction, 
 											float spread, float minSpeed, float maxSpeed) {
 	float baseAngle = direction * 3.14159f / 180.0f;
 	float spreadRad = spread * 3.14159f / 180.0f;
@@ -135,7 +135,7 @@ void ParticleSystem::spawnDirectedParticles(float x, float y, int count, float d
 	}
 }
 
-void ParticleSystem::spawnDirectedParticlesInArea(float centerX, float centerY, float areaWidth, float areaHeight,
+void SDLParticleSystem::spawnDirectedParticlesInArea(float centerX, float centerY, float areaWidth, float areaHeight,
 													int count, float direction, float spread,
 													float minSpeed, float maxSpeed, SDL_Color color) {
 	float baseAngle = direction * 3.14159f / 180.0f;
@@ -159,7 +159,7 @@ void ParticleSystem::spawnDirectedParticlesInArea(float centerX, float centerY, 
 	}
 }
 
-void ParticleSystem::spawnSnakeTrail(float x, float y, int count, float direction, SDL_Color color) {
+void SDLParticleSystem::spawnSnakeTrail(float x, float y, int count, float direction, SDL_Color color) {
 	float angle = direction * 3.14159f / 180.0f;
 	
 	for (int i = 0; i < count; i++) {
@@ -185,7 +185,7 @@ void ParticleSystem::spawnSnakeTrail(float x, float y, int count, float directio
 	}
 }
 
-void ParticleSystem::drawRotatedSquare(float cx, float cy, float size, float rotation, SDL_Color color, Uint8 alpha) {
+void SDLParticleSystem::drawRotatedSquare(float cx, float cy, float size, float rotation, SDL_Color color, Uint8 alpha) {
 	// Rotation -> Radians
 	float rad = rotation * 3.14159f / 180.0f;
 	float halfSize = size / 2.0f;

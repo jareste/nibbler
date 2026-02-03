@@ -370,3 +370,5 @@ void RaylibTitleHandler::drawTitle() {
 	// DEBUG
 	//DrawGrid(gridWidth, graphic.cubeSize);
 }
+
+void RaylibTitleHandler::drawGameover() {}

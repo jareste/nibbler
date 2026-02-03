@@ -1,10 +1,10 @@
-#include "../incs/TextRenderer.hpp"
+#include "../incs/SDLTextRenderer.hpp"
 
-TextRenderer::TextRenderer(SDL_Renderer* renderer) 
+SDLTextRenderer::SDLTextRenderer(SDL_Renderer* renderer) 
 	: renderer(renderer), mainFont(nullptr), smallFont(nullptr), initialized(false) {
 }
 
-TextRenderer::~TextRenderer() {
+SDLTextRenderer::~SDLTextRenderer() {
 	if (mainFont) {
 		TTF_CloseFont(mainFont);
 		mainFont = nullptr;
@@ -15,7 +15,7 @@ TextRenderer::~TextRenderer() {
 	}
 }
 
-bool TextRenderer::init(int windowWidth) {
+bool SDLTextRenderer::init(int windowWidth) {
 	int mainSize = (windowWidth < 1800) ? 34 : 34;
 	int smallSize = (windowWidth < 1800) ? 24 : 24;
 
@@ -46,7 +46,7 @@ bool TextRenderer::init(int windowWidth) {
 	return initialized;
 }
 
-bool TextRenderer::renderText(const std::string& text, int x, int y, int offset, 
+bool SDLTextRenderer::renderText(const std::string& text, int x, int y, int offset, 
 								TTF_Font* fontToUse, SDL_Color color, bool centered) {
 	if (!fontToUse || !initialized) return false;
 
@@ -82,7 +82,7 @@ bool TextRenderer::renderText(const std::string& text, int x, int y, int offset,
 	return true;
 }
 
-void TextRenderer::renderInstruction(int centerX, int centerY, int& offset,
+void SDLTextRenderer::renderInstruction(int centerX, int centerY, int& offset,
                                      const std::string& labelText, const std::string& dotText,
                                      bool smallMode, TTF_Font* currentFont) {
 	if (!initialized) return;
@@ -98,7 +98,7 @@ void TextRenderer::renderInstruction(int centerX, int centerY, int& offset,
 	offset += (smallMode ? 40 : 90);  // isntructions line offset
 }
 
-void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, int square) {
+void SDLTextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, int square) {
 	if (!initialized) return;
 
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
@@ -149,7 +149,7 @@ void TextRenderer::renderInstructions(int centerX, int centerY, bool smallMode, 
 	                  smallMode, currentFont);
 }
 
-void TextRenderer::renderScore(int centerX, int centerY, int score, bool smallMode, int square) {
+void SDLTextRenderer::renderScore(int centerX, int centerY, int score, bool smallMode, int square) {
 	if (!initialized) return;
 
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
@@ -199,7 +199,7 @@ void TextRenderer::renderScore(int centerX, int centerY, int score, bool smallMo
 	}
 }
 
-void TextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode, int square) {
+void SDLTextRenderer::renderRetryPrompt(int centerX, int centerY, bool smallMode, int square) {
 	if (!initialized) return;
 
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;

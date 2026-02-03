@@ -1,16 +1,16 @@
-#include "../incs/TitleHandler.hpp"
+#include "../incs/SDLTitleHandler.hpp"
 
-TitleHandler::TitleHandler(SDL_Renderer* renderer) : renderer(renderer) {
+SDLTitleHandler::SDLTitleHandler(SDL_Renderer* renderer) : renderer(renderer) {
 }
 
-void TitleHandler::drawRects(const std::vector<SDL_Rect>& rects, SDL_Color color) {
+void SDLTitleHandler::drawRects(const std::vector<SDL_Rect>& rects, SDL_Color color) {
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 	for (const auto& rect : rects) {
 		SDL_RenderFillRect(renderer, &rect);
 	}
 }
 
-void TitleHandler::renderTitle(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color blue, SDL_Color red) {
+void SDLTitleHandler::renderTitle(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color blue, SDL_Color red) {
 	int totalWidth = (26 * square) + (6 * sep);
 	int startX = centerX - (totalWidth / 2);
 	
@@ -69,7 +69,7 @@ void TitleHandler::renderTitle(int centerX, int centerY, int square, int sep, SD
 	drawRects(bblerRects, white);
 }
 
-void TitleHandler::renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white) {
+void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white) {
 	int totalWidth = (26 * square) + (3 * sep);
 	int startX = centerX - (totalWidth / 2);
 	centerY = centerY - (square * 2.5);

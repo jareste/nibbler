@@ -32,7 +32,7 @@ struct Particle {
 			float velocityX, float velocityY, SDL_Color particleColor);
 };
 
-class ParticleSystem {
+class SDLParticleSystem {
 	private:
 		SDL_Renderer*			renderer;
 		std::vector<Particle>	particles;
@@ -60,8 +60,8 @@ class ParticleSystem {
 		void drawRotatedSquare(float cx, float cy, float size, float rotation, SDL_Color color, Uint8 alpha);
 
 	public:
-		ParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int cell, int border);
-		~ParticleSystem();
+		SDLParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int cell, int border);
+		~SDLParticleSystem();
 		
 		// Update and render
 		void update(float deltaTime);

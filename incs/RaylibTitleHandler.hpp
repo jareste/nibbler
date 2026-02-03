@@ -15,4 +15,5 @@ class RaylibTitleHandler {
 		RaylibTitleHandler &operator=(const RaylibTitleHandler &other) = delete;
 		
 		void drawTitle();
+		void drawGameover();
 };
