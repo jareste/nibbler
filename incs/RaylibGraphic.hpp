@@ -3,11 +3,14 @@
 #include "Snake.hpp"
 #include "Food.hpp"
 #include "colors.h"
+#include "RaylibTitleHandler.hpp"
+#include "RaylibTextRenderer.hpp"
 #include <raylib.h>
 #include <raymath.h>
 #include <rlgl.h>
 #include <iostream>
 #include <array>
+#include <memory>
 
 class RaylibGraphic : public IGraphic {
 private:
@@ -25,6 +28,9 @@ private:
 
 	Camera3D	camera;
 	
+	std::unique_ptr<RaylibTitleHandler> titleHandler;
+	std::unique_ptr<RaylibTextRenderer>	textRenderer;
+
 	// Postprocessing noise system
 	static const int							GRAIN_TEXTURE_COUNT = 8;
 	std::array<Texture2D, GRAIN_TEXTURE_COUNT>	grainTextures;
@@ -40,6 +46,16 @@ private:
 	Color customGray = { 125, 125, 125, 255};				// Mid gray
 	Color customBlack = { 23, 23, 23, 255};					// Deep navy black
 	
+	// Logo colors - Dark segments (darker overall, balanced contrast)
+	Color logoDarkTop = { 180, 175, 160, 255 };				// Medium-dark cream/beige (brightest of dark set)
+	Color logoDarkFront = { 70, 67, 58, 255 };				// Dark brown-gray (not too close to black)
+	Color logoDarkSide = { 125, 120, 108, 255 };			// Medium warm gray (between top and front)
+
+	// Logo colors - Light segments (lighter overall, more contrast)
+	Color logoLightTop = customWhite;						// Brightest (255, 248, 227)
+	Color logoLightFront = { 170, 165, 148, 255 };			// Medium beige (darker for more contrast)
+	Color logoLightSide = { 215, 208, 188, 255 };			// Light beige (between top and front)
+
 	// Ground colors - Light squares
 	Color groundLightTop = customWhite;
 	Color groundLightFront = { 26, 64, 96, 255 };			// Blue
@@ -79,6 +95,14 @@ public:
 	RaylibGraphic &operator=(const RaylibGraphic &other) = delete;
 	~RaylibGraphic();
 
+	friend class RaylibTitleHandler;
+	friend class RaylibTextRenderer;
+
+	float getCubeSize() const { return cubeSize; }
+    float getSeparator() const { return separator; }
+    Camera3D& getCamera() { return camera; }
+    float& getAccumulatedTime() { return accumulatedTime; }
+
 	void setupCamera(); 
 	void drawGroundPlane() ;
 	void drawWalls();
@@ -90,21 +114,10 @@ public:
 	void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);
 	void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
 
-	void DrawOutlinedText(const char *text, int posX, int posY, int fontSize, Color color, int outlineSize, Color outlineColor);
-
 	void init(int width, int height) override;
 	void render(const GameState& state, float deltaTime) override;
 	void renderMenu(const GameState &state, float deltaTime) override;
-	void drawTitle();
 	void drawInstructions();
 	void renderGameOver(const GameState &state, float deltaTime) override;
 	Input pollInput() override;
 };
-
-extern "C" IGraphic* createGraphic() {
-	return new RaylibGraphic();
-}
-
-extern "C" void destroyGraphic(IGraphic* g) {
-	delete g;
-}

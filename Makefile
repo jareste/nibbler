@@ -57,11 +57,11 @@ NCURSES_URL     := https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar
 GFX_DIR          := srcs/graphics
 
 SDL_SRC          := SDLGraphic.cpp ParticleSystem.cpp TextRenderer.cpp TitleHandler.cpp
-RAYLIB_SRC       := RaylibGraphic.cpp
+RAYLIB_SRC       := RaylibGraphic.cpp RaylibTitleHandler.cpp RaylibTextRenderer.cpp
 NCURSES_SRC      := NCursesGraphic.cpp
 
 SDL_OBJS         := .obj/libs/SDLGraphic.o .obj/libs/ParticleSystem.o .obj/libs/TextRenderer.o .obj/libs/TitleHandler.o
-RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o
+RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o .obj/libs/RaylibTitleHandler.o .obj/libs/RaylibTextRenderer.o
 NCURSES_OBJS     := .obj/libs/NCursesGraphic.o
 
 GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o 
@@ -165,6 +165,18 @@ $(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS)
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibGraphic.d
+
+# Raylib TitleHandler object file compilation
+.obj/libs/RaylibTitleHandler.o: $(GFX_DIR)/RaylibTitleHandler.cpp Makefile
+	@mkdir -p .obj/libs
+	@mkdir -p .dep/libs
+	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTitleHandler.d
+
+# Raylib TextRenderer object file compilation
+.obj/libs/RaylibTextRenderer.o: $(GFX_DIR)/RaylibTextRenderer.cpp Makefile
+	@mkdir -p .obj/libs
+	@mkdir -p .dep/libs
+	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTextRenderer.d
 
 # NCurses object file compilation
 .obj/libs/NCursesGraphic.o: $(GFX_DIR)/NCursesGraphic.cpp Makefile
