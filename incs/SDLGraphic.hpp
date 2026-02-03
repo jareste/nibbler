@@ -2,9 +2,9 @@
 #include "IGraphic.hpp"
 #include "Snake.hpp"
 #include "Food.hpp"
-#include "ParticleSystem.hpp"
-#include "TextRenderer.hpp"
-#include "TitleHandler.hpp"
+#include "SDLParticleSystem.hpp"
+#include "SDLTextRenderer.hpp"
+#include "SDLTitleHandler.hpp"
 #include "colors.h"
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
@@ -34,9 +34,9 @@ class SDLGraphic : public IGraphic {
 		int												square;
 		int												sep;
 		int												borderOffset;
-		std::unique_ptr<ParticleSystem>					particleSystem;
-		std::unique_ptr<TextRenderer>					textRenderer;
-		std::unique_ptr<TitleHandler>					titleHandler;
+		std::unique_ptr<SDLParticleSystem>				particleSystem;
+		std::unique_ptr<SDLTextRenderer>				textRenderer;
+		std::unique_ptr<SDLTitleHandler>				titleHandler;
 		std::vector<BorderLine>							borderLines;
 		std::chrono::high_resolution_clock::time_point	lastSpawnTime;
 		float											spawnInterval;
@@ -74,9 +74,7 @@ class SDLGraphic : public IGraphic {
 		// Drawing functions
 		void drawSnake(const GameState &state);
 		void drawFood(const GameState &state);
-		void drawBorder(int thickness);
-		void drawInstructions(int centerX, int centerY);
-		void drawRetryText(const GameState &state, int centerX, int centerY);	public:
+		void drawBorder(int thickness);	public:
 		SDLGraphic();
 		SDLGraphic(const SDLGraphic&) = delete;
 		SDLGraphic &operator=(const SDLGraphic&) = delete;

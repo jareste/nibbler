@@ -5,8 +5,8 @@
 2. [The Miracle of Standards](#112-the-miracle-of-standards)
 3. [The Graphic Gardens of Eden](#112-the-graphic-gardens-of-eden)
 4. [Encouraging, Which Is a Gerund](#114-encouraging-which-is-a-gerund)
+5. [More Idea Droplets](#115-some-more-idea-droplets)
 
-<br>
 <br>
 <br>
 
@@ -252,18 +252,24 @@ FOV = 0.022619*size² + 0.198810*size + 31.028571
 ```
 
 <p float="left">
-  <img src="raylib_camera_small.png" alt="Raylib framing of a small size game arena" height=500>
-  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" height=500 vspace=20>
-  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" height=500 vspace=20>
+  <img src="raylib_camera_small.png" alt="Raylib framing of a small size game arena">
+  <img src="raylib_camera_mid.png" alt="Raylib framing of a middle size game arena" vspace=20>
+  <img src="raylib_camera_large.png" alt="Raylib framing of a large size game arena" vspace=20>
 </p>
 
-Moving on, drawing the nibbler logo/title with cubes was *kinda* easy, honestly quite similar as drawing it with squares in `SDL2`, but what for some god forsaken reason took me a lot of time was the centering of it all. In the end it was the silliest thing imaginable, but I had an exahusting fight to make the isometric, cube based `nibbler` logo be correctly positioned in my game world. Which is even worse if we take into consideration that the `Raylib` render is the one that that gives me more freedom when drawing the title, without any need of managing what happens if the size is this or that size, as everything is based on the game world size and the initialized values for `cubeSize` and `separator`. Anyway, it is done, and it looks like this:
+Moving on, drawing **the nibbler logo/title with cubes** was *kinda* easy, honestly quite similar as drawing it with squares in `SDL2`, but what for some god forsaken reason took me a lot of time was the centering of it all. In the end it was the silliest thing imaginable, but I had an exahusting fight to make the isometric, cube based `nibbler` logo be correctly positioned in my game world. Which is even worse if we take into consideration that the `Raylib` render is the one that that gives me more freedom when drawing the title, without any need of managing what happens if the size is this or that size, as everything is based on the game world size and the initialized values for `cubeSize` and `separator`. Anyway, it is done, and it looks like this:
 
 <p float="left">
   <img src="raylib_title.png" alt="Raylib title screen">
 </p>
 
-To achieve the isometric rendering of the instructions test I had to do some research. The research itself had a very easy first step, a google search of "Raylib draw text in 3D", which returned me this [link](https://www.raylib.com/examples/text/loader.html?name=text_3d_drawing). This is a community extension added to the base library (there are examples of `DrawText3D` in its documentation), which took me a while to process. Then I adapted an implementation of the pipeline in my `RaylibGraphic` class, like this:
+When choosing the colors, I also tested how things would look like with a white/gray-based logo. I did this because the white-red-blue version was more tied to how things are drawn in the 3D realm itself, but it kinda visually *deviates* from how the logo looks in `SDL2` and `NCurses` version. At this point, I had to make a choice, what direction should prevail, and because there's a kind of embedded "growth" across realms, my mind is lest ressistant to the "now it's also red and blue because the 3D version adds sides to the rendering that just were not visible before". So, summing it up: colored logo it is. Here's the non-colored version, just in case and for recording purposes:
+
+<p float="left">
+  <img src="raylib_title_white.png" alt="Raylib title screen">
+</p>
+
+To achieve the **isometric rendering of the instructions** test I had to do some research. The research itself had a very easy first step, a google search of "Raylib draw text in 3D", which returned me this [link](https://www.raylib.com/examples/text/loader.html?name=text_3d_drawing). This is a community extension added to the base library (there are examples of `DrawText3D` in its documentation), which took me a while to process. Then I adapted an implementation of the pipeline in my `RaylibGraphic` class, like this:
 ```cpp
 void RaylibGraphic::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint) {
     int length = TextLength(text);
@@ -372,6 +378,21 @@ void RaylibGraphic::DrawTextCodepoint3D(Font font, int codepoint, Vector3 positi
 
 This let's me do exactly what I wanted: write in axonometric view, chosing the perspective and direction. At this point, I'm happy with the start screen in `Raylib` version, so I'll move on to the gameover screen. But first, some refactoring is due again. I have to dettach the text and title rendering from the main `RaylibGraphic` class and take them to helper classes, the same way as I did for `SDL2`. This will also mean some renaming in the `SDL2` related helpers, as I didn't prefix them and their contents correctly (thanks, me from the past, for messing it up again). I'll refactor and come back with some gameover stuff...
 
+... And I'm back. Refactoring took a lot of time, and I don't want to extend this log for too much longer. Let's just sum it up:
+- Both `SDL` and `Raylib` now have helpers for **text rendering** and **title managing**, each prefixed with the respective library name. 
+- `XXTextRenderer` handles all string-based, font-rendering of plain text.
+	- in `SDL` this a simple decoupling of the sub-pipeline that calls the text rendering functions of the library
+	- in `Raylib` things are a little bit more complicated, as the axonometric drawing of the text needs to be handled via the code snippets collected just above this lines
+- `XXTitleManager` manages the drawing of both the custom `nibbler` logo and the `gameover` sign, square-based in `SDL`, cube-based in `Raylib`
+	- Composing, centering and overall arriving to representations of the same *typography* across every library was H E L L, to be honest, specially in the 3D version, not because of the library but because manually drawing stuff with blocks took a lot of manual labour.
+		- I'm sure that there are better ways to do this, maybe through some code refinements an automatizations, maybe through some tooling, but this is done and I don't have time right now to enhance this corner of the project. I have to move on!
+
+This is how the `gameover` screen looks right now in Raylib, and with this we can finish this cursed devlog (well, there are a couple of more, small sections, but you know what I mean):
+
+<p float="left">
+  <img src="raylib_gameover.png" alt="Raylib title screen">
+</p>
+
 <br>
 <br>
 
@@ -382,3 +403,10 @@ This section's title is just another byproduct of me losing my mind. *"Animando,
 	- Make the squiggles of the small logo slightly twitchy, growing and shrinking in the animation loop
 - `SDL2`
 	- Try to mimic the border animation in the letters (*this might break my spirit*)
+
+<br>
+<br>
+
+## 11.5 Some More Idea Droplets
+- While working in the 3D realm, I thought about adding different food types. I generally like to break down game's like *snake* (previously, for example, *pong*) into their basic, conceptual building blocks to find opportunities for design in them, so breaking *snake* into `segments`, `food` and `walls` is a good starting point. And with regards to food, there could be something like:
+	- (3D mode): a food pip that gives +10 points but makes the camera rotate around the arena for half a minute

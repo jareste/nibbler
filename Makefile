@@ -56,12 +56,12 @@ NCURSES_URL     := https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar
 
 GFX_DIR          := srcs/graphics
 
-SDL_SRC          := SDLGraphic.cpp ParticleSystem.cpp TextRenderer.cpp TitleHandler.cpp
-RAYLIB_SRC       := RaylibGraphic.cpp
+SDL_SRC          := SDLGraphic.cpp SDLParticleSystem.cpp SDLTextRenderer.cpp SDLTitleHandler.cpp
+RAYLIB_SRC       := RaylibGraphic.cpp RaylibTitleHandler.cpp RaylibTextRenderer.cpp
 NCURSES_SRC      := NCursesGraphic.cpp
 
-SDL_OBJS         := .obj/libs/SDLGraphic.o .obj/libs/ParticleSystem.o .obj/libs/TextRenderer.o .obj/libs/TitleHandler.o
-RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o
+SDL_OBJS         := .obj/libs/SDLGraphic.o .obj/libs/SDLParticleSystem.o .obj/libs/SDLTextRenderer.o .obj/libs/SDLTitleHandler.o
+RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o .obj/libs/RaylibTitleHandler.o .obj/libs/RaylibTextRenderer.o
 NCURSES_OBJS     := .obj/libs/NCursesGraphic.o
 
 GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o 
@@ -143,28 +143,40 @@ $(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS)
 	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLGraphic.d
 
 # ParticleSystem object file compilation (for SDL)
-.obj/libs/ParticleSystem.o: $(GFX_DIR)/ParticleSystem.cpp Makefile
+.obj/libs/SDLParticleSystem.o: $(GFX_DIR)/SDLParticleSystem.cpp Makefile
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
-	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/ParticleSystem.d
+	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLParticleSystem.d
 
 # TextRenderer object file compilation (for SDL)
-.obj/libs/TextRenderer.o: $(GFX_DIR)/TextRenderer.cpp Makefile
+.obj/libs/SDLTextRenderer.o: $(GFX_DIR)/SDLTextRenderer.cpp Makefile
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
-	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/TextRenderer.d
+	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLTextRenderer.d
 
 # TitleHandler object file compilation (for SDL)
-.obj/libs/TitleHandler.o: $(GFX_DIR)/TitleHandler.cpp Makefile
+.obj/libs/SDLTitleHandler.o: $(GFX_DIR)/SDLTitleHandler.cpp Makefile
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
-	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/TitleHandler.d
+	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLTitleHandler.d
 
 # Raylib object file compilation
 .obj/libs/RaylibGraphic.o: $(GFX_DIR)/RaylibGraphic.cpp Makefile
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibGraphic.d
+
+# Raylib TitleHandler object file compilation
+.obj/libs/RaylibTitleHandler.o: $(GFX_DIR)/RaylibTitleHandler.cpp Makefile
+	@mkdir -p .obj/libs
+	@mkdir -p .dep/libs
+	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTitleHandler.d
+
+# Raylib TextRenderer object file compilation
+.obj/libs/RaylibTextRenderer.o: $(GFX_DIR)/RaylibTextRenderer.cpp Makefile
+	@mkdir -p .obj/libs
+	@mkdir -p .dep/libs
+	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTextRenderer.d
 
 # NCurses object file compilation
 .obj/libs/NCursesGraphic.o: $(GFX_DIR)/NCursesGraphic.cpp Makefile
