@@ -9,7 +9,6 @@
 
 <br>
 <br>
-<br>
 
 ## 11.1 Day Eleven Plan
 A considerable chunk of today's working time has gone towards job applications, so I don't think there will be great advancements today. Still, there are a couple of hours left on the workclock, so let's put them to good use. Today's plan doesn't need a list, as it is quite straight forward: **working on the start and gameover screens** across platforms.
@@ -378,6 +377,21 @@ void RaylibGraphic::DrawTextCodepoint3D(Font font, int codepoint, Vector3 positi
 ```
 
 This let's me do exactly what I wanted: write in axonometric view, chosing the perspective and direction. At this point, I'm happy with the start screen in `Raylib` version, so I'll move on to the gameover screen. But first, some refactoring is due again. I have to dettach the text and title rendering from the main `RaylibGraphic` class and take them to helper classes, the same way as I did for `SDL2`. This will also mean some renaming in the `SDL2` related helpers, as I didn't prefix them and their contents correctly (thanks, me from the past, for messing it up again). I'll refactor and come back with some gameover stuff...
+
+... And I'm back. Refactoring took a lot of time, and I don't want to extend this log for too much longer. Let's just sum it up:
+- Both `SDL` and `Raylib` now have helpers for **text rendering** and **title managing**, each prefixed with the respective library name. 
+- `XXTextRenderer` handles all string-based, font-rendering of plain text.
+	- in `SDL` this a simple decoupling of the sub-pipeline that calls the text rendering functions of the library
+	- in `Raylib` things are a little bit more complicated, as the axonometric drawing of the text needs to be handled via the code snippets collected just above this lines
+- `XXTitleManager` manages the drawing of both the custom `nibbler` logo and the `gameover` sign, square-based in `SDL`, cube-based in `Raylib`
+	- Composing, centering and overall arriving to representations of the same *typography* across every library was H E L L, to be honest, specially in the 3D version, not because of the library but because manually drawing stuff with blocks took a lot of manual labour.
+		- I'm sure that there are better ways to do this, maybe through some code refinements an automatizations, maybe through some tooling, but this is done and I don't have time right now to enhance this corner of the project. I have to move on!
+
+This is how the `gameover` screen looks right now in Raylib, and with this we can finish this cursed devlog (well, there are a couple of more, small sections, but you know what I mean):
+
+<p float="left">
+  <img src="raylib_gameover.png" alt="Raylib title screen">
+</p>
 
 <br>
 <br>
