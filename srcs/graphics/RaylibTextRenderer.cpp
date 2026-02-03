@@ -41,20 +41,20 @@ void RaylibTextRenderer::drawInstructions() {
 	float fontSpacing = 0.20f;
 	float lineSpacing = 1.0f;
 	
-	DrawText3D(customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(customFont, "            ············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "            ············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(customFont, "[ 1   2   3 ]         TRAVEL", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(customFont, "    /   /     ·······       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ 1   2   3 ]         TRAVEL", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "    /   /     ·······       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(customFont, "[ Q   ESC ] ··········· QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ Q   ESC ]             QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
 }
 
 void RaylibTextRenderer::DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint) {
@@ -119,17 +119,17 @@ void RaylibTextRenderer::DrawTextCodepoint3D(Font font, int codepoint, Vector3 p
 	}
 }
 
-void RaylibTextRenderer::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint) {
+void RaylibTextRenderer::DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint, float YRotation, float YOffset, float XOffset) {
     int length = TextLength(text);
     
-    float textOffsetY = graphic.cubeSize * 7;
-    float textOffsetX = -graphic.cubeSize * 7;
+    float textOffsetY = graphic.cubeSize * YOffset;
+    float textOffsetX = -graphic.cubeSize * XOffset;
     
     float scale = fontSize / (float)font.baseSize;
     
     rlPushMatrix();
     rlTranslatef(position.x, position.y, position.z);
-    rlRotatef(+90.0f, 0.0f, 1.0f, 0.0f);
+    rlRotatef(YRotation, 0.0f, 1.0f, 0.0f);
     
     for (int i = 0; i < length;) {
         int codepointByteCount = 0;
@@ -163,4 +163,24 @@ void RaylibTextRenderer::DrawText3D(Font font, const char *text, Vector3 positio
 
 void RaylibTextRenderer::drawRetry(const GameState& state) {
 	(void)state;
+
+	Vector3 textPosition = { 4.0f, -2.0f, 0.0f };
+	float fontSize = 2.0f;
+	float fontSpacing = 0.20f;
+	float lineSpacing = 1.0f;
+	
+	DrawText3D(customFont, "YOU               ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeLightSide, 0.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "    ATE           ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "        100       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.foodSide, 0.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "            APPLES", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
+	
+
+	textPosition.x -= 7.0f;
+	textPosition.z += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ ENTER ]              RETRY", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 0.0f, 7.0f, 7.0f);
+
+	textPosition.z += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ Q   ESC ]             QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 0.0f, 7.0f, 7.0f);
 }

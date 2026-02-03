@@ -114,7 +114,7 @@ void SDLTextRenderer::drawInstructions(int centerX, int centerY) {
 
 	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int offset = square * 7;
+	int offset = smallMode ? square * 3 : square * 7;
 	
 	// Enter instruction
 	std::string instructionTextA = smallMode ?
@@ -167,7 +167,7 @@ void SDLTextRenderer::drawScore(const GameState& state, int centerX, int centerY
 
 	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int yOffset = square * 8;
+	int yOffset = smallMode ? square * 3 : square * 7;
 	
 	std::string scoreNum = std::to_string(state.score);
 	std::string appleWord = (state.score == 1) ? "APPLE" : "APPLES";
@@ -259,7 +259,7 @@ void SDLTextRenderer::drawRetryPrompt(int centerX, int centerY) {
 
 	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int offset = square * 10.5;
+	int offset = smallMode ? square * 4 : square * 8;
 	
 	// Retry instructions
 	std::string gameoverTextA = smallMode ?

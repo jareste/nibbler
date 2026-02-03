@@ -72,7 +72,7 @@ void SDLTitleHandler::renderTitle(int centerX, int centerY, int square, int sep,
 void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white) {
 	int totalWidth = (26 * square) + (3 * sep);
 	int startX = centerX - (totalWidth / 2);
-	centerY = centerY - (square * 2.5);
+	centerY = centerY - (square * 3.5);
 	
 	// g
 	std::vector<SDL_Rect> gRects = {
