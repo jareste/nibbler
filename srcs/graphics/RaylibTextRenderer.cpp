@@ -1,7 +1,39 @@
 #include "../../incs/RaylibTextRenderer.hpp"
 #include "../../incs/RaylibGraphic.hpp"
+#include <rlgl.h>
 
-RaylibTextRenderer::RaylibTextRenderer(RaylibGraphic& parent) : graphic(parent) {}
+RaylibTextRenderer::RaylibTextRenderer(RaylibGraphic& parent) : graphic(parent) {
+	loadFont();
+}
+
+RaylibTextRenderer::~RaylibTextRenderer() {
+	UnloadFont(customFont);
+}
+
+void RaylibTextRenderer::loadFont() {
+	// Load font with Unicode support
+	// Create array with all codepoints we need
+	int codepointCount = 256 - 32 + 8;  // ASCII printable (32-255) + arrows + dot
+	int *codepoints = new int[codepointCount];
+	
+	// Load basic ASCII printable characters (32-255)
+	for (int i = 0; i < (256 - 32); i++) {
+		codepoints[i] = 32 + i;
+	}
+	
+	// Add Unicode arrows and middle dot
+	codepoints[256 - 32 + 0] = 0x2191;  // ↑
+	codepoints[256 - 32 + 1] = 0x2193;  // ↓
+	codepoints[256 - 32 + 2] = 0x2190;  // ←
+	codepoints[256 - 32 + 3] = 0x2192;  // →
+	codepoints[256 - 32 + 4] = 0x00B7;  // · (middle dot)
+	codepoints[256 - 32 + 5] = 0x2022;  // • (bullet point, alternative)
+	codepoints[256 - 32 + 6] = 0x00B7;  // · (duplicate for safety)
+	codepoints[256 - 32 + 7] = 0x002E;  // . (period, fallback)
+	
+	customFont = LoadFontEx("fonts/JetBrainsMono-VariableFont_wght.ttf", 64, codepoints, codepointCount);
+	delete[] codepoints;
+}
 
 void RaylibTextRenderer::drawInstructions() {
 	Vector3 textPosition = { 0.0f, 0.0f, 0.0f };
@@ -9,20 +41,20 @@ void RaylibTextRenderer::drawInstructions() {
 	float fontSpacing = 0.20f;
 	float lineSpacing = 1.0f;
 	
-	DrawText3D(graphic.customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(graphic.customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
+	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(graphic.customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(graphic.customFont, "            ············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
+	DrawText3D(customFont, "            ············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(graphic.customFont, "[ 1   2   3 ]         TRAVEL", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(graphic.customFont, "    /   /     ·······       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ 1   2   3 ]         TRAVEL", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
+	DrawText3D(customFont, "    /   /     ·······       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
-	DrawText3D(graphic.customFont, "[ Q   ESC ] ··········· QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
-	DrawText3D(graphic.customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
+	DrawText3D(customFont, "[ Q   ESC ] ··········· QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite);
+	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray);
 }
 
 void RaylibTextRenderer::DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint) {

@@ -7,13 +7,18 @@ class RaylibGraphic;
 class RaylibTextRenderer {
 	private:
 		RaylibGraphic& graphic;
+		Font customFont;  // Font with Unicode support
+		
+		void loadFont();
 
 	public:
 		RaylibTextRenderer() = delete;
 		RaylibTextRenderer(RaylibGraphic& parent);
-		~RaylibTextRenderer() = default;
+		~RaylibTextRenderer();
 		RaylibTextRenderer (const RaylibTextRenderer &other) = delete;
 		RaylibTextRenderer &operator=(const RaylibTextRenderer &other) = delete;
+		
+		Font& getFont() { return customFont; }
 		
 		void drawInstructions();
 		void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);

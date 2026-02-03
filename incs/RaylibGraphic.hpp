@@ -38,9 +38,6 @@ private:
 	float										grainFrameTimer;
 	float										grainFrameInterval;
 	
-	// Font with Unicode support
-	Font										customFont;
-	
 	// Colors
 	Color customWhite = { 255, 248, 227, 255};				// Warm off-white (cream)
 	Color customGray = { 125, 125, 125, 255};				// Mid gray
@@ -111,13 +108,10 @@ public:
 	void drawCubeCustomFaces(Vector3 position, float width, float height, float length,
 	                         Color front, Color back, Color top, Color bottom, Color right, Color left);
 	void drawNoiseGrain();  // Post Processing
-	void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint);
-	void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
 
 	void init(int width, int height) override;
 	void render(const GameState& state, float deltaTime) override;
 	void renderMenu(const GameState &state, float deltaTime) override;
-	void drawInstructions();
 	void renderGameOver(const GameState &state, float deltaTime) override;
 	Input pollInput() override;
 };
