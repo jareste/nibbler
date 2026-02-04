@@ -568,3 +568,11 @@ void NCursesGraphic::generateGroundPattern() {
 		}
 	}
 }
+
+extern "C" IGraphic* createGraphic() {
+	return new NCursesGraphic();
+}
+
+extern "C" void destroyGraphic(IGraphic* g) {
+	delete g;
+}

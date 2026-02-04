@@ -4,7 +4,6 @@
 RaylibTitleHandler::RaylibTitleHandler(RaylibGraphic& parent) : graphic(parent) {}
 
 void RaylibTitleHandler::drawTitle() {
-	graphic.getCamera().fovy = graphic.menuFov;
 	float yPos = 0;
 	float size = graphic.cubeSize;
 	
@@ -371,8 +370,7 @@ void RaylibTitleHandler::drawTitle() {
 	//DrawGrid(graphic.gridWidth, graphic.cubeSize);
 }
 
-void RaylibTitleHandler::drawGameover() {
-	graphic.getCamera().fovy = graphic.menuFov;
+void RaylibTitleHandler::drawGameover() {;
 	float yPos = 0;
 	float size = graphic.cubeSize;
 	

@@ -75,9 +75,12 @@ class SDLGraphic : public IGraphic {
 		void drawSnake(const GameState &state);
 		void drawFood(const GameState &state);
 		void drawBorder(int thickness);	public:
+	
+	public:
 		SDLGraphic();
 		SDLGraphic(const SDLGraphic&) = delete;
 		SDLGraphic &operator=(const SDLGraphic&) = delete;
+		
 		~SDLGraphic();
 		
 		void init(int width, int height) override;
@@ -86,11 +89,3 @@ class SDLGraphic : public IGraphic {
 		void renderGameOver(const GameState &state, float deltaTime) override;
 		Input pollInput() override;
 };
-
-extern "C" IGraphic* createGraphic() {
-	return new SDLGraphic();
-}
-
-extern "C" void destroyGraphic(IGraphic* g) {
-	delete g;
-}

@@ -249,6 +249,7 @@ void RaylibGraphic::drawNoiseGrain() {
 
 void RaylibGraphic::render(const GameState& state, float deltaTime){
 	camera.fovy = customFov;
+	
 	if (!state.isPaused) {
         accumulatedTime += deltaTime;
     }
@@ -291,6 +292,8 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 }
 
 void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
+	getCamera().fovy = menuFov;
+
 	if (!state.isPaused) {
         accumulatedTime += deltaTime;
     }
@@ -318,7 +321,8 @@ void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
 }
 
 void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
-	// Update film grain pattern at regular intervals
+	getCamera().fovy = menuFov;
+
 	grainFrameTimer += deltaTime;
 	if (grainFrameTimer >= grainFrameInterval) {
 		grainFrameTimer = 0.0f;
@@ -358,6 +362,11 @@ Input RaylibGraphic::pollInput() {
 	
 	return Input::None;
 }
+
+float RaylibGraphic::getCubeSize() const { return cubeSize; }
+float RaylibGraphic::getSeparator() const { return separator; }
+Camera3D& RaylibGraphic::getCamera() { return camera; }
+float& RaylibGraphic::getAccumulatedTime() { return accumulatedTime; }
 
 extern "C" IGraphic* createGraphic() {
 	return new RaylibGraphic();

@@ -15,11 +15,12 @@ class RaylibTextRenderer {
 	public:
 		RaylibTextRenderer() = delete;
 		RaylibTextRenderer(RaylibGraphic& parent);
-		~RaylibTextRenderer();
-		RaylibTextRenderer (const RaylibTextRenderer &other) = delete;
+		RaylibTextRenderer(const RaylibTextRenderer &other) = delete;
 		RaylibTextRenderer &operator=(const RaylibTextRenderer &other) = delete;
+
+		~RaylibTextRenderer();
 		
-		Font& getFont() { return customFont; }
+		Font& getFont();
 		
 		void drawInstructions();
 		void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint, float YRotation, float YOffset, float XOffset);

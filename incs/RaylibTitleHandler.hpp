@@ -10,9 +10,10 @@ class RaylibTitleHandler {
 	public:
 		RaylibTitleHandler() = delete;
 		RaylibTitleHandler(RaylibGraphic& parent);
-		~RaylibTitleHandler() = default;
-		RaylibTitleHandler (const RaylibTitleHandler &other) = delete;
+		RaylibTitleHandler(const RaylibTitleHandler &other) = delete;
 		RaylibTitleHandler &operator=(const RaylibTitleHandler &other) = delete;
+
+		~RaylibTitleHandler() = default;
 		
 		void drawTitle();
 		void drawGameover();

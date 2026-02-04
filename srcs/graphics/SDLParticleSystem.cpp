@@ -223,3 +223,11 @@ void SDLParticleSystem::drawRotatedSquare(float cx, float cy, float size, float 
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_RenderGeometry(renderer, nullptr, vertices, 4, indices, 6);
 }
+
+// Configuration
+void SDLParticleSystem::setMaxDustDensity(int density) { maxDustDensity = density; }
+void SDLParticleSystem::setDustSpawnInterval(float interval) { dustSpawnInterval = interval; }
+		
+// Utility
+void SDLParticleSystem::clear() { particles.clear(); }
+size_t SDLParticleSystem::getParticleCount() const { return particles.size(); }
