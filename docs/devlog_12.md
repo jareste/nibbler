@@ -153,3 +153,6 @@ Some refactoring (renaming, really) need to be done in the graphics side of the 
 3) the most basic boilerplate setup for my parter
 4) the Makefile additions to fetch and prepare the audio library of choice (thinking about `SDL_mix`)
 
+And... All of those done. Don't need to get into detail, I think, as this is pretty boring stuff: renaming this, refactoring that, extending this other thing, placeholdering something over there... The main point is that right now, **the sound pipeline is in place**, and a fake sound play call is correctly done from the function that handles the eating of the food. From here, it's all in my partner's hands.
+
+Tomorrow I'll get into automated tests!
