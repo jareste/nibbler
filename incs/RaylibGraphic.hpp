@@ -95,10 +95,10 @@ public:
 	friend class RaylibTitleHandler;
 	friend class RaylibTextRenderer;
 
-	float getCubeSize() const { return cubeSize; }
-    float getSeparator() const { return separator; }
-    Camera3D& getCamera() { return camera; }
-    float& getAccumulatedTime() { return accumulatedTime; }
+	float getCubeSize() const;
+    float getSeparator() const;
+    Camera3D& getCamera();
+    float& getAccumulatedTime();
 
 	void setupCamera(); 
 	void drawGroundPlane() ;

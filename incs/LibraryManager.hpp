@@ -12,7 +12,6 @@ class LibraryManager {
 	
 	public:
 		LibraryManager();
-
 		LibraryManager(const LibraryManager&) = delete;
 		LibraryManager &operator=(const LibraryManager&) = delete;
 

@@ -19,8 +19,8 @@ class GameManager {
 		void processNextInput();
 
 	public:
+		GameManager();
 		GameManager(GameState *state);
-
 		GameManager(const GameManager &other) = delete;
 		GameManager &operator=(const GameManager &other) = delete;
 

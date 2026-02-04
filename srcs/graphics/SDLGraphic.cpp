@@ -376,3 +376,11 @@ void SDLGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	
 	SDL_RenderPresent(renderer);
 }
+
+extern "C" IGraphic* createGraphic() {
+	return new SDLGraphic();
+}
+
+extern "C" void destroyGraphic(IGraphic* g) {
+	delete g;
+}

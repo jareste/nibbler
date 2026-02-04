@@ -32,7 +32,11 @@ private:
 	                     bool smallMode, TTF_Font* currentFont);
 
 public:
+	SDLTextRenderer();
 	SDLTextRenderer(SDL_Renderer* renderer);
+	SDLTextRenderer(const SDLTextRenderer &other) = delete;
+	SDLTextRenderer &operator=(const SDLTextRenderer &other) = delete;
+
 	~SDLTextRenderer();
 
 	bool init(int windowWidth, int windowHeight, int cellSize, int borderOffset);
@@ -41,7 +45,7 @@ public:
 	void drawScore(const GameState& state, int centerX, int centerY);
 	void drawRetryPrompt(int centerX, int centerY);
 
-	TTF_Font* getMainFont() const { return mainFont; }
-	TTF_Font* getSmallFont() const { return smallFont; }
-	bool isInitialized() const { return initialized; }
+	TTF_Font* getMainFont() const;
+	TTF_Font* getSmallFont() const;
+	bool isInitialized() const;
 };

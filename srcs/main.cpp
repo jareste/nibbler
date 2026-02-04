@@ -21,6 +21,19 @@ void cleanupNCurses() {
 	}
 }
 
+bool parseArguments(int argc, char **argv)
+{
+	for (int i = 1; i < argc; i++) {
+		std::string str(argv[i]);
+		if (str.find_first_not_of("0123456789") != std::string::npos) {
+			std::cerr << "error: bad argument {" << argv[i] << "}: only numeric arguments accepted" << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
 int main(int argc, char **argv) {
 	std::atexit(cleanupNCurses); // This might not be necessary after switching to an external, dynamically linked Ncurses, but we'll leave it just in case (legacy!)
 	
@@ -30,10 +43,15 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	if (!parseArguments(argc, argv))
+	{
+		return 1;
+	}
+
 	int width = std::stoi(argv[1]);
 	int height = std::stoi(argv[2]);
 
-	if (width < 16 || height < 16)
+	if (width < 16 || height < 16 || width > 41 || height > 41)
 	{
 		std::cerr << "Minimal arena width and height values are 16 units! Try running again with those or higher values!" << std::endl;
 		return 1;

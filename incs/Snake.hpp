@@ -20,7 +20,6 @@ class Snake {
 	public:
 		Snake() = delete;
 		Snake(int width, int height);
-
 		Snake(const Snake &other);
 		Snake &operator=(const Snake &other);
 		

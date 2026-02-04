@@ -206,7 +206,7 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 	currentPos.x += ateWidth;
 	
 	// Score number - red
-	float scoreInterset = (static_cast<float>((state.score) / 10) * 0.1f) + 0.2f;
+	float scoreInterset = (static_cast<float>((scoreNum.length())) * 0.075f) + 0.2f;
 	DrawText3D(customFont, scoreText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
 	           graphic.foodSide, 0.0f, 7.0f, 7.0f + scoreInterset);
 	
@@ -230,3 +230,5 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 	DrawText3D(customFont, "[ Q   ESC ]             QUIT", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
 	DrawText3D(customFont, "    /       ···········     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 0.0f, 7.0f, 7.0f);
 }
+
+Font& RaylibTextRenderer::getFont() { return customFont; }

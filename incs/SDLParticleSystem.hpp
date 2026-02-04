@@ -60,7 +60,11 @@ class SDLParticleSystem {
 		void drawRotatedSquare(float cx, float cy, float size, float rotation, SDL_Color color, Uint8 alpha);
 
 	public:
+		SDLParticleSystem();
 		SDLParticleSystem(SDL_Renderer* renderer, int gridW, int gridH, int cell, int border);
+		SDLParticleSystem(const SDLParticleSystem &other) = delete;
+		SDLParticleSystem &operator=(const SDLParticleSystem &other) = delete;
+
 		~SDLParticleSystem();
 		
 		// Update and render
@@ -78,10 +82,10 @@ class SDLParticleSystem {
 		void spawnSnakeTrail(float x, float y, int count, float direction, SDL_Color color);
 		
 		// Configuration
-		void setMaxDustDensity(int density) { maxDustDensity = density; }
-		void setDustSpawnInterval(float interval) { dustSpawnInterval = interval; }
+		void setMaxDustDensity(int density);
+		void setDustSpawnInterval(float interval);
 		
 		// Utility
-		void clear() { particles.clear(); }
-		size_t getParticleCount() const { return particles.size(); }
+		void clear();
+		size_t getParticleCount() const;
 };

@@ -12,7 +12,6 @@ class Food {
 	public:
 		Food() = delete;
 		Food(Vec2 position, int width, int height);
-		
 		Food(const Food &other);
 		Food &operator=(const Food &other);
 

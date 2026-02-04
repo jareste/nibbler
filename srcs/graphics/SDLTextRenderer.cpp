@@ -285,3 +285,7 @@ void SDLTextRenderer::drawRetryPrompt(int centerX, int centerY) {
 	                gameoverTextA, gameoverTextB, 
 	                smallMode, currentFont);
 }
+
+TTF_Font*	SDLTextRenderer::getMainFont() const { return mainFont; }
+TTF_Font*	SDLTextRenderer::getSmallFont() const { return smallFont; }
+bool		SDLTextRenderer::isInitialized() const { return initialized; }

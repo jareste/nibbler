@@ -48,9 +48,12 @@ private:
 	bool loadAsciiArtFile(const std::string& filepath, AsciiArtFile& art);
 	
 public:
+	// Canon check ok
+
 	NCursesGraphic();
 	NCursesGraphic(const NCursesGraphic&) = delete;
 	NCursesGraphic &operator=(const NCursesGraphic&) = delete;
+	
 	~NCursesGraphic();
 	
 	void init(int w, int h) override;
@@ -59,11 +62,3 @@ public:
 	void renderGameOver(const GameState &state, float deltaTime) override;
 	Input pollInput() override;
 };
-
-extern "C" IGraphic* createGraphic() {
-	return new NCursesGraphic();
-}
-
-extern "C" void destroyGraphic(IGraphic* g) {
-	delete g;
-}
