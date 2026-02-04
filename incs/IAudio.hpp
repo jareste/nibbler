@@ -28,3 +28,12 @@ class IAudio {
 		// Helpers
 		virtual bool isMusicPlaying() const = 0;
 };
+
+
+// This don't need to be here. In fact, they need to be taken out, but I'm leaving them
+// to have the recipes when the time to build the audio implementation (i.e., the specific, library linked cpp file)
+
+extern "C" {
+	IAudio *createAudio();
+	void destroyAudio(IAudio*);
+}

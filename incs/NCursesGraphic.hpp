@@ -48,8 +48,6 @@ private:
 	bool loadAsciiArtFile(const std::string& filepath, AsciiArtFile& art);
 	
 public:
-	// Canon check ok
-
 	NCursesGraphic();
 	NCursesGraphic(const NCursesGraphic&) = delete;
 	NCursesGraphic &operator=(const NCursesGraphic&) = delete;

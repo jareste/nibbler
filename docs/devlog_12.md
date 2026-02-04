@@ -112,5 +112,44 @@ And thus, the basic project ins D O N E.
 
 ## 13.4 Interfacing 2: Electric Boogaloo
 Let's start adding extra stuff, and let's do it from the audio side of things. We'll do this by interfacing the audio related stuff, so that we can (as we are asked to) manage everything in the library side of stuff. The implementation itself is going to be done by my team partner, but I'll take care of `IAudio`:
+```cpp
+class IAudio {
+	public:
+		virtual ~IAudio() = default;
 
+		// init
+		virtual void init() = 0;
+		virtual void cleanup() = 0;
+
+		// sound management
+		virtual bool loadSound(const std::string &id, const std::string &filepath) = 0;
+		virtual void unloadSound(const std::string &id) = 0;
+
+		// playback
+		virtual void playSound(const std::string &id) = 0;
+		virtual void playMusic(const std::string &id, bool loop = true);
+		virtual void stopMusic() = 0;
+		virtual void pauseMusic() = 0;
+		virtual void resumeMusic() = 0;
+
+		// Volume control -> normalized between 0.0f and 1.0f
+		virtual void setSoundVolume(float volume) = 0;
+		virtual void setMusicVolume(float volume) = 0;
+		virtual void setMasterVolume(float volume) = 0;
+
+		// Helpers
+		virtual bool isMusicPlaying() const = 0;
+};
+
+extern "C" {
+	IAudio *createAudio();
+	void destroyAudio(IAudio*);
+}
+```
+
+Some refactoring (renaming, really) need to be done in the graphics side of the `LibraryManager` to correctly divide the graphics and the audio pipelines. Now, a couple of things need to be dealt with:
+1) the loading of the library in main
+2) the setup of the audio lib accesibility (I'm thinking about a pointer to `IAudio` in `GameState`, accessible from the `GameManager`)
+3) the most basic boilerplate setup for my parter
+4) the Makefile additions to fetch and prepare the audio library of choice (thinking about `SDL_mix`)
 
