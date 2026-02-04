@@ -16,75 +16,61 @@ SDLMIXAudio::~SDLMIXAudio() {
 // Initialization
 void SDLMIXAudio::init() {
 	std::cout << "[SDLMIXAudio] Init called - TODO: Initialize SDL_mixer" << std::endl;
-	// Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
-	// Mix_AllocateChannels(16);
 }
 
 void SDLMIXAudio::cleanup() {
 	std::cout << "[SDLMIXAudio] Cleanup called - TODO: Cleanup SDL_mixer" << std::endl;
-	// Mix_CloseAudio();
 }
 
 // Sound management
 bool SDLMIXAudio::loadSound(const std::string &id, const std::string &filepath) {
 	std::cout << "[SDLMIXAudio] loadSound called - id: " << id << ", path: " << filepath << std::endl;
-	// Mix_LoadWAV ?
 	return true;
 }
 
 void SDLMIXAudio::unloadSound(const std::string &id) {
 	std::cout << "[SDLMIXAudio] unloadSound called - id: " << id << std::endl;
-	// Mix_FreeChunk
 }
 
 // Playback
 void SDLMIXAudio::playSound(const std::string &id) {
 	std::cout << "[SDLMIXAudio] playSound called - id: " << id << std::endl;
-	// Mix_PlayChannel
 }
 
 void SDLMIXAudio::playMusic(const std::string &id, bool loop) {
 	std::cout << "[SDLMIXAudio] playMusic called - id: " << id << ", loop: " << loop << std::endl;
-	// Mix_PlayMusic
 }
 
 void SDLMIXAudio::stopMusic() {
 	std::cout << "[SDLMIXAudio] stopMusic called" << std::endl;
-	// Mix_HaltMusic
 }
 
 void SDLMIXAudio::pauseMusic() {
 	std::cout << "[SDLMIXAudio] pauseMusic called" << std::endl;
-	// Mix_PauseMusic
 }
 
 void SDLMIXAudio::resumeMusic() {
 	std::cout << "[SDLMIXAudio] resumeMusic called" << std::endl;
-	// Mix_ResumeMusic
 }
 
 // Volume control
 void SDLMIXAudio::setSoundVolume(float volume) {
 	soundVolume = volume;
 	std::cout << "[SDLMIXAudio] setSoundVolume called - volume: " << volume << std::endl;
-	// Mix_Volume
 }
 
 void SDLMIXAudio::setMusicVolume(float volume) {
 	musicVolume = volume;
 	std::cout << "[SDLMIXAudio] setMusicVolume called - volume: " << volume << std::endl;
-	// Mix_VolumeMusic
 }
 
 void SDLMIXAudio::setMasterVolume(float volume) {
 	masterVolume = volume;
 	std::cout << "[SDLMIXAudio] setMasterVolume called - volume: " << volume << std::endl;
-	// TODO
 }
 
 // State queries
 bool SDLMIXAudio::isMusicPlaying() const {
-	// Mix_PlayingMusic ?
 	return false;
 }
 
