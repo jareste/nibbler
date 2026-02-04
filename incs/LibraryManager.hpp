@@ -1,14 +1,23 @@
 #pragma once
-#include "IGraphic.hpp"
 #include <dlfcn.h>
 #include <iostream>
 
+class IGraphic;
+class IAudio;
+
 class LibraryManager {
 	private:
-		void *handle;
+		// Graphic stuff
+		void *graphicHandle;
 		IGraphic *graphic;
-		using CreateFn = IGraphic *(*)();
-		using DestroyFn = void (*)(IGraphic*);
+		using CreateGraphicFn = IGraphic *(*)();
+		using DestroyGraphicFn = void (*)(IGraphic*);
+
+		// Audio stuff
+		void	*audioHandle;
+		IAudio	*audio;
+		using	CreateAudioFn = IAudio *(*)();
+		using	DestroyAudioFn = void (*)(IAudio*);
 	
 	public:
 		LibraryManager();
@@ -17,8 +26,12 @@ class LibraryManager {
 
 		~LibraryManager();
 
-		bool load(const char *libPath);
-		void unload();
+		bool loadGraphicLib(const char *libPath);
+		void unloadGraphicLib();
 
-		IGraphic *get();
+		bool loadAudioLib(const char *libpath);
+		void unloadAudioLib();
+
+		IGraphic *getGraphicLib();
+		IAudio *getAudioLib();
 };

@@ -1,45 +1,92 @@
 #include "../incs/LibraryManager.hpp"
 
-LibraryManager::LibraryManager() : handle(nullptr), graphic(nullptr) {}
+LibraryManager::LibraryManager() : 
+	graphicHandle(nullptr), graphic(nullptr),
+	audioHandle(nullptr), audio(nullptr)	 
+{}
 
-LibraryManager::~LibraryManager() { unload(); }
+LibraryManager::~LibraryManager() { unloadGraphicLib(); unloadAudioLib(); }
 
-bool LibraryManager::load(const char * libPath) {
-	handle = dlopen(libPath, RTLD_NOW);
-			if (!handle) {
-				std::cerr << "dlopen error: " << dlerror() << std::endl;
-				return false;
-			}
-			
-			CreateFn create = (CreateFn)dlsym(handle, "createGraphic");
-			DestroyFn destroy = (DestroyFn)dlsym(handle, "destroyGraphic");
-			
-			if (!create || !destroy) {
-				std::cerr << "Symbol error: " << dlerror() << std::endl;
-				dlclose(handle);
-				handle = nullptr;
-				return false;
-			}
-			
-			graphic = create();
-			std::cout << "Loaded: " << libPath << std::endl;
-			return true;
+// video
+bool LibraryManager::loadGraphicLib(const char *libPath) {
+	graphicHandle = dlopen(libPath, RTLD_NOW);
+		if (!graphicHandle) {
+			std::cerr << "dlopen error: " << dlerror() << std::endl;
+			return false;
+		}
+		
+		CreateGraphicFn create = (CreateGraphicFn)dlsym(graphicHandle, "createGraphic");
+		DestroyGraphicFn destroy = (DestroyGraphicFn)dlsym(graphicHandle, "destroyGraphic");
+		
+		if (!create || !destroy) {
+			std::cerr << "Symbol error: " << dlerror() << std::endl;
+			dlclose(graphicHandle);
+			graphicHandle = nullptr;
+			return false;
+		}
+		
+		graphic = create();
+		std::cout << "Loaded: " << libPath << std::endl;
+		return true;
 }
 
-void LibraryManager::unload() {
+void LibraryManager::unloadGraphicLib() {
 	if (graphic) {
 		using DestroyFn = void (*)(IGraphic*);
-		DestroyFn destroy = (DestroyFn)dlsym(handle, "destroyGraphic");
+		DestroyFn destroy = (DestroyFn)dlsym(graphicHandle, "destroyGraphic");
 		if (destroy) {
 			destroy(graphic);
 		}
 		graphic = nullptr;
 	}
 
-	if (handle) {
-		dlclose(handle);
-		handle = nullptr;
+	if (graphicHandle) {
+		dlclose(graphicHandle);
+		graphicHandle = nullptr;
 	}
 }
 
-IGraphic *LibraryManager::get() { return graphic; }
+// audio
+bool LibraryManager::loadAudioLib(const char* libPath) {
+	audioHandle = dlopen(libPath, RTLD_NOW);
+
+	if (!audioHandle) {
+		std::cerr << "dl open error: " << dlerror() << std::endl;
+		return false;
+	}
+
+	CreateAudioFn create = (CreateAudioFn)dlsym(audioHandle, "createAudio");
+	DestroyAudioFn destroy = (DestroyAudioFn)dlsym(audioHandle, "destroyAudio");
+
+	if (!create || !destroy) {
+		std::cerr << "Symbol error: " << dlerror() << std::endl;
+			dlclose(audioHandle);
+			audioHandle = nullptr;
+			return false;
+	}
+
+	audio = create();
+	std::cout << "Loaded: " << libPath << std::endl;
+	return true;
+}
+
+void LibraryManager::unloadAudioLib() {
+	if (audio) {
+		using DestroyAudioFn = void (*)(IAudio*);
+		DestroyAudioFn destroy = (DestroyAudioFn)dlsym(audioHandle, "destroyAudio");
+		if (destroy) {
+			destroy(audio);
+		}
+		audio = nullptr;
+
+		if (audioHandle) {
+			dlclose(audioHandle);
+			audioHandle = nullptr;
+		}
+	}
+}
+
+// getter
+IGraphic *LibraryManager::getGraphicLib() { return graphic; }
+
+IAudio *LibraryManager::getAudioLib() { return audio; }

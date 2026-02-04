@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <memory>
 
 struct Vec2 {
 	int	x;
@@ -8,6 +9,7 @@ struct Vec2 {
 
 class Snake;
 class Food;
+class IAudio;
 
 enum class GameStateType {
     Menu,
@@ -26,4 +28,5 @@ struct GameState {
 	bool			isPaused;
 	GameStateType	currentState;
 	int				score;
+	IAudio*			audio;
 };

@@ -15,7 +15,7 @@ class IAudio {
 
 		// playback
 		virtual void playSound(const std::string &id) = 0;
-		virtual void playMusic(const std::string &id, bool loop = true);
+		virtual void playMusic(const std::string &id, bool loop) = 0;
 		virtual void stopMusic() = 0;
 		virtual void pauseMusic() = 0;
 		virtual void resumeMusic() = 0;
@@ -28,3 +28,12 @@ class IAudio {
 		// Helpers
 		virtual bool isMusicPlaying() const = 0;
 };
+
+
+// This don't need to be here. In fact, they need to be taken out, but I'm leaving them
+// to have the recipes when the time to build the audio implementation (i.e., the specific, library linked cpp file)
+
+extern "C" {
+	IAudio *createAudio();
+	void destroyAudio(IAudio*);
+}

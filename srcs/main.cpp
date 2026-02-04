@@ -1,4 +1,5 @@
 #include "../incs/IGraphic.hpp"
+#include "../incs/IAudio.hpp"
 #include "../incs/Snake.hpp"
 #include "../incs/Food.hpp"
 #include "../incs/DataStructs.hpp"
@@ -57,18 +58,25 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	constexpr std::array<std::string_view, 3> libs = {
+	constexpr std::array<std::string_view, 3> graphicLibs = {
 		"./nibbler_ncurses.so",
 		"./nibbler_sdl.so",
 		"./nibbler_raylib.so"
 	};
+
+	const std::string audioLib = "./nibbler_sdl_mix.so";
+
 	int currentLib = 2;
 
-	LibraryManager gfxLib;
-	if (!gfxLib.load(libs[currentLib].data()))
+	LibraryManager libManager;
+	if (!libManager.loadGraphicLib(graphicLibs[currentLib].data()) || !libManager.loadAudioLib(audioLib.c_str()))
 		return 1;
 
-	gfxLib.get()->init(width, height);
+	// init graphics
+	libManager.getGraphicLib()->init(width, height);
+
+	//init audio
+	libManager.getAudioLib()->init();
 
 	Snake snake(width, height);
 	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
@@ -78,7 +86,8 @@ int main(int argc, char **argv) {
 		true,
 		false,
 		GameStateType::Menu,
-		0
+		0,
+		libManager.getAudioLib()
 	};
 
 	GameManager gameManager(&state);
@@ -96,7 +105,7 @@ int main(int argc, char **argv) {
 		float deltaTime = frameTime.count();
 		lastTime = currentTime;
 		
-		Input input = gfxLib.get()->pollInput();
+		Input input = libManager.getGraphicLib()->pollInput();
 		
 		if (input == Input::Quit) {
 			state.isRunning = false;
@@ -106,9 +115,9 @@ int main(int argc, char **argv) {
 		if (input >= Input::SwitchLib1 && input <= Input::SwitchLib3) {
 			int newLib = (int)input - 1;
 			if (newLib != currentLib) {
-				gfxLib.unload();
-				if (!gfxLib.load(libs[newLib].data())) return 1;
-				gfxLib.get()->init(width, height);
+				libManager.unloadGraphicLib();
+				if (!libManager.loadGraphicLib(graphicLibs[newLib].data())) return 1;
+				libManager.getGraphicLib()->init(width, height);
 				currentLib = newLib;
 			}
 		}
@@ -120,7 +129,7 @@ int main(int argc, char **argv) {
 					state.currentState = GameStateType::Playing;
 					accumulator = 0.0;
 				}
-				gfxLib.get()->renderMenu(state, deltaTime);
+				libManager.getGraphicLib()->renderMenu(state, deltaTime);
 				break;
 				
 			case GameStateType::Playing:
@@ -144,7 +153,7 @@ int main(int argc, char **argv) {
 					}
 				}
 				
-				gfxLib.get()->render(state, deltaTime);
+				libManager.getGraphicLib()->render(state, deltaTime);
 				break;
 				
 			case GameStateType::Paused:
@@ -152,7 +161,7 @@ int main(int argc, char **argv) {
 					state.isPaused = false;
 					state.currentState = GameStateType::Playing;
 				}
-				gfxLib.get()->render(state, 0.0f);
+				libManager.getGraphicLib()->render(state, 0.0f);
 				break;
 				
 			case GameStateType::GameOver:
@@ -167,7 +176,7 @@ int main(int argc, char **argv) {
 					
 					state.currentState = GameStateType::Menu;
 				}
-				gfxLib.get()->renderGameOver(state, deltaTime);
+				libManager.getGraphicLib()->renderGameOver(state, deltaTime);
 				break;
 		}
 		

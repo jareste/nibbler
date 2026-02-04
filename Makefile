@@ -13,6 +13,7 @@ NAME			:= nibbler
 SDL_LIB_NAME    := nibbler_sdl.so
 RAYLIB_LIB_NAME  := nibbler_raylib.so
 NCURSES_LIB_NAME := nibbler_ncurses.so
+AUDIO_LIB_NAME   := nibbler_sdl_mix.so
 
 # -=-=-=-=-    DIRECTORIES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= #
 
@@ -44,25 +45,30 @@ LDFLAGS         := -ldl -L$(PWD)/libs/ncurses/lib -lncursesw -Wl,-rpath,$(PWD)/l
 LIB_DIR         := libs
 SDL_DIR         := $(LIB_DIR)/SDL2
 SDL_TTF_DIR     := $(LIB_DIR)/SDL_ttf
+SDL_MIXER_DIR   := $(LIB_DIR)/SDL_mixer
 RAYLIB_DIR      := $(LIB_DIR)/raylib
 NCURSES_DIR     := $(LIB_DIR)/ncurses
 
 SDL_REPO        := https://github.com/libsdl-org/SDL.git
 SDL_TTF_REPO    := https://github.com/libsdl-org/SDL_ttf.git
+SDL_MIXER_REPO  := https://github.com/libsdl-org/SDL_mixer.git
 RAYLIB_REPO     := https://github.com/raysan5/raylib.git
 NCURSES_URL     := https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar.gz
 
 # -=-=-=-=-    GRAPHIC LIBRARY SOURCE FILES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
 GFX_DIR          := srcs/graphics
+AUDIO_DIR        := srcs/Audio
 
 SDL_SRC          := SDLGraphic.cpp SDLParticleSystem.cpp SDLTextRenderer.cpp SDLTitleHandler.cpp
 RAYLIB_SRC       := RaylibGraphic.cpp RaylibTitleHandler.cpp RaylibTextRenderer.cpp
 NCURSES_SRC      := NCursesGraphic.cpp
+AUDIO_SRC        := SDLMIXAudio.cpp
 
 SDL_OBJS         := .obj/libs/SDLGraphic.o .obj/libs/SDLParticleSystem.o .obj/libs/SDLTextRenderer.o .obj/libs/SDLTitleHandler.o
 RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o .obj/libs/RaylibTitleHandler.o .obj/libs/RaylibTextRenderer.o
 NCURSES_OBJS     := .obj/libs/NCursesGraphic.o
+AUDIO_OBJS       := .obj/libs/SDLMIXAudio.o
 
 GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o 
 
@@ -71,14 +77,16 @@ GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $
 SDL_CFLAGS       := $(LIB_CFLAGS) -I$(SDL_DIR)/include -I$(SDL_TTF_DIR)
 RAYLIB_CFLAGS    := $(LIB_CFLAGS) -I$(RAYLIB_DIR)/src -Wno-missing-field-initializers
 NCURSES_CFLAGS   := $(LIB_CFLAGS) -I$(NCURSES_DIR)/include -I$(NCURSES_DIR)/include/ncursesw
+AUDIO_CFLAGS     := $(LIB_CFLAGS) -I$(SDL_MIXER_DIR)/include
 
 SDL_LDFLAGS      := -L$(SDL_DIR)/build -lSDL2-2.0 -L$(SDL_TTF_DIR)/build -lSDL2_ttf -Wl,-rpath,$(SDL_DIR)/build -Wl,-rpath,$(SDL_TTF_DIR)/build
 RAYLIB_LDFLAGS   := -L$(RAYLIB_DIR)/src -lraylib -lm -lpthread -ldl -lrt -lX11
 NCURSES_LDFLAGS  := -L$(NCURSES_DIR)/lib -lncursesw -Wl,-rpath,$(NCURSES_DIR)/lib
+AUDIO_LDFLAGS    := -L$(SDL_MIXER_DIR)/build -lSDL2_mixer -Wl,-rpath,$(SDL_MIXER_DIR)/build
 
 # -=-=-=-=-    TARGETS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
-all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(NAME)
+all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
 
 check_libs:
 	@if [ ! -f "$(SDL_DIR)/CMakeLists.txt" ]; then \
@@ -94,6 +102,20 @@ check_libs:
 		git clone --depth 1 --branch release-2.22.x $(SDL_TTF_REPO) $(SDL_TTF_DIR); \
 		cd $(SDL_TTF_DIR) && mkdir -p build && cd build && cmake -DSDL2_DIR=$(PWD)/$(SDL_DIR) .. && make -j4; \
 		echo "$(GREEN)SDL_ttf built successfully$(DEF_COLOR)"; \
+	fi
+	@if [ ! -f "$(SDL_MIXER_DIR)/CMakeLists.txt" ]; then \
+		echo "$(YELLOW)SDL_mixer not found. Cloning...$(DEF_COLOR)"; \
+		mkdir -p $(LIB_DIR); \
+		git clone --depth 1 --branch release-2.8.x $(SDL_MIXER_REPO) $(SDL_MIXER_DIR); \
+		cd $(SDL_MIXER_DIR) && mkdir -p build && cd build && \
+		cmake -DSDL2_DIR=$(PWD)/$(SDL_DIR) \
+			-DSDL2MIXER_OPUS=OFF \
+			-DSDL2MIXER_FLAC=OFF \
+			-DSDL2MIXER_MOD=OFF \
+			-DSDL2MIXER_MIDI=OFF \
+			-DSDL2MIXER_WAVPACK=OFF .. && \
+		make -j4; \
+		echo "$(GREEN)SDL_mixer built successfully$(DEF_COLOR)"; \
 	fi
 	@if [ ! -f "$(RAYLIB_DIR)/src/raylib.h" ]; then \
 		echo "$(YELLOW)Raylib not found. Cloning...$(DEF_COLOR)"; \
@@ -135,6 +157,10 @@ $(RAYLIB_LIB_NAME): $(RAYLIB_OBJS) $(GAME_OBJS)
 $(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS)
 	$(CC) -shared -o $@ $^ $(NCURSES_LDFLAGS)
 	@echo "$(GREEN)Built $(NCURSES_LIB_NAME)$(DEF_COLOR)"
+
+$(AUDIO_LIB_NAME): $(AUDIO_OBJS)
+	$(CC) -shared -o $@ $^ $(AUDIO_LDFLAGS)
+	@echo "$(GREEN)Built $(AUDIO_LIB_NAME)$(DEF_COLOR)"
 
 # SDL object file compilation
 .obj/libs/SDLGraphic.o: $(GFX_DIR)/SDLGraphic.cpp Makefile
@@ -184,6 +210,12 @@ $(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS)
 	@mkdir -p .dep/libs
 	$(CC) $(NCURSES_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/NCursesGraphic.d
 
+# Audio object file compilation
+.obj/libs/SDLMIXAudio.o: $(AUDIO_DIR)/SDLMIXAudio.cpp Makefile
+	@mkdir -p .obj/libs
+	@mkdir -p .dep/libs
+	$(CC) $(AUDIO_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLMIXAudio.d
+
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp Makefile
 	@mkdir -p $(@D)
 	@mkdir -p $(DEPDIR)/$(*D)
@@ -211,8 +243,8 @@ clean:
 	@echo "$(RED)Objects removed$(DEF_COLOR)"
 
 fclean: clean
-	@/bin/rm -f $(NAME) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME)
-	@/bin/rm -fr $(SDL_DIR) $(SDL_TTF_DIR) $(RAYLIB_DIR) $(NCURSES_DIR)
+	@/bin/rm -f $(NAME) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME)
+	@/bin/rm -fr $(SDL_DIR) $(SDL_TTF_DIR) $(SDL_MIXER_DIR) $(RAYLIB_DIR) $(NCURSES_DIR)
 	@/bin/rm -fr checks/valgrind-unified.txt checks/valgrind-ncurses-out.txt checks/valgrind-sdl-out.txt checks/valgrind-raylib-out.txt
 	@echo "$(RED)Cleaned all binaries, external libraries and memory logs$(DEF_COLOR)"
 
