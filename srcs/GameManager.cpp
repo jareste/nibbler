@@ -47,6 +47,7 @@ void GameManager::checkHeadFoodCollision() {
 
 	if (head.x == foodPos.x && head.y == foodPos.y)
 	{
+		_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation
 		_state->snake.grow();
 		_state->score++;  // Increment score when food is eaten
 		

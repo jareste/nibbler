@@ -1,5 +1,6 @@
 #pragma once
 #include "DataStructs.hpp"
+#include "IAudio.hpp"
 #include "Input.hpp"
 #include "Snake.hpp"
 #include "Food.hpp"
