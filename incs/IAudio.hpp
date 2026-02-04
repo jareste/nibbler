@@ -15,7 +15,7 @@ class IAudio {
 
 		// playback
 		virtual void playSound(const std::string &id) = 0;
-		virtual void playMusic(const std::string &id, bool loop = true);
+		virtual void playMusic(const std::string &id, bool loop) = 0;
 		virtual void stopMusic() = 0;
 		virtual void pauseMusic() = 0;
 		virtual void resumeMusic() = 0;
