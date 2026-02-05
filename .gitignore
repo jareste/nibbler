@@ -9,4 +9,4 @@ run_tests
 *.o
 *.so
 nibbler
-libs/googletest/
+libs/googletest/libs/

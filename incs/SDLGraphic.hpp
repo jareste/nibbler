@@ -6,7 +6,7 @@
 #include "SDLTextRenderer.hpp"
 #include "SDLTitleHandler.hpp"
 #include "colors.h"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <SDL_ttf.h>
 #include <iostream>
 #include <string>
