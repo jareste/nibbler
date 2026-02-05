@@ -3,6 +3,10 @@
 ## Table of Contents
 1. [Day Seventeen Plan](#131-day-seventeen-plan)
 2. [Testing, Testng, One, Two, Three](#132-testing-testng-one-two-three)
+	- [Makefiling Our Way into Googletest's Heart](#makefiling-our-way-into-googletests-heart)
+	- [Lights, Camera, Github Actions!](#lights-camera-github-actions)
+	- [Googling Ment Something Different When I Was Younger (or The Google Way of Testing Stuff)](#googling-ment-something-different-when-i-was-younger-or-the-google-way-of-testing-stuff)
+
 
 <br>
 <br>
@@ -21,13 +25,13 @@ If after all of this there's more time to today's journey, I'll get into... **ch
 ## 13.2 Testing, Testng, One, Two, Three
 I have some experience setting up github actions with automated test pipelines based on different tools. For example, I've worked with `xUnit` in `C#`/`dotnet` environments and `criterion` for `C` programs, and after some research I decided to take the opportunity to learn about `gtest` tied to `C++`. All of these tools, as I understand them at least, give me the perfect environment to both make **assertion based tests** that can be automated a different points during development and integration (aka, we're getting into `CI/CL` from this point on), and the objective today is to **build a pipeline that auto-tests any attempt to push or merge along the project's tree**. So let's get into it!
 
-As this is a somewhat tangly implementation, which needs substantial additions to `Makefile`, test boilerplaiting and the `yml` configuration files for the `github actions`, this is also a good opportunity to lay down the whole process, step by step. We'll do it in this order:
+As this is a somewhat tangly implementation, which needs substantial additions to `Makefile`, test boilerplating and the `yml` configuration files for the `github actions`, this is also a good opportunity to lay down the whole process, step by step. We'll do it in this order:
 1. Makefile setup for `googletest`
-2. github actions setup (`yml` files)
+2. Github actions setup (`yml` files)
 3. How to write tests, with some examples (snake tests)
 
 ### Makefiling Our Way into Googletest's Heart
-I must say something, before going on: I hate makefile. I love it *conceptually*, but I'd rather eat glass than writing one of this files. Fortunately, at this point in my life, I have so many makefiles in my backpack that there's always one that works as a template, but inyecting automated tests in them is something that I've only started doing since the last months of last year. So let's break down how to do it in plain human.
+I must say something, before going on: I hate Makefile. I love it *conceptually*, but I'd rather eat glass than writing one of these files. Fortunately, at this point in my life, I have so many makefiles in my backpack that there's always one that works as a template, but injecting automated tests in them is something that I've only started doing since the last months of last year. So let's break down how to do it in plain human.
 
 Adding a `googletest` implementation to my current mafile requires the following:
 - A test directory target
@@ -38,7 +42,7 @@ Adding a `googletest` implementation to my current mafile requires the following
 
 On top of this, to manage the test files and their setup, we need to set up directory for the test files (my written tests), their object and dependencies hidden folders and the independent binary that will be used to run the tests.
 
-> for this last part, I use `wildcard` because I don't want to bother myself with having to write every test source file manually every time I write one. I don't really know if wildcarding is a *bad practice*, but I was taught not to use it. At this point, and after following that lesson for the game's source files, which are all listed one by one, I think that no one will be angry that I wildcard a little for testing. And if that's not the case, I can only ask for forgiveness.
+> For this last part, I use `wildcard` because I don't want to bother myself with having to write every test source file manually every time I write one. While wildcarding is sometimes discouraged for production code (where explicit dependency tracking matters), for test discovery it's the pragmatic choice. If someone has anything against this decision, all I can resort to is asking for forgiveness.
 
 Translating all of this to the cursed tongue of Makefile, and sprinkling some flags on top of everything, we get:
 ```Makefile
@@ -115,7 +119,158 @@ $(TEST_DEPDIR):
 
 Now, all we have to do is write test (something pretty enjoyable for me during the, let's say, first hour of coding them, not so much after that >_>).
 
-### The Google Way of Testing Stuff
+#### A Quick Note on SDL2 Headers
+One tricky issue I encountered during CI setup: when building SDL2 from source (as the Makefile does), headers are in `libs/SDL2/include/SDL.h`. However, system-installed SDL2 uses `<SDL2/SDL.h>`. 
+
+Therefore, I had to standardized the includes  (`#include <SDL.h>`) in the code, and the Makefile flags now correctly handle the path resolution:
+```cpp
+// From this:
+#include <SDL.h>
+
+// to this:
+#include <SDL2/SDL.h>
+```
+
+This makes the code compatible with both custom builds and system packages, which is essential for CI environments that use apt-installed libraries.
+
+<br>
+
+### Lights, Camera, Github Actions!
+
+Now that we have the Makefile pipeline ready, we need to automate it via GitHub Actions. This requires creating workflow files in `.github/workflows/`.
+
+#### ci.yml - Full Build and Test Pipeline
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          libx11-dev \
+          libxrandr-dev \
+          libxinerama-dev \
+          libxcursor-dev \
+          libxi-dev \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev \
+          libsdl2-dev \
+          libsdl2-ttf-dev \
+          libsdl2-mixer-dev \
+          libncurses-dev \
+          pkg-config \
+          git
+    
+    - name: Cache libraries
+      uses: actions/cache@v4
+      with:
+        path: |
+          libs/SDL2
+          libs/SDL_ttf
+          libs/SDL_mixer
+          libs/raylib
+          libs/ncurses
+          libs/googletest
+        key: ${{ runner.os }}-libs-${{ hashFiles('Makefile') }}-v2
+        restore-keys: |
+          ${{ runner.os }}-libs-
+    
+    - name: Build libraries
+      run: |
+        make check_libs
+        make check_gtest
+    
+    - name: Build project
+      run: make all
+    
+    - name: Run tests
+      run: make test
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          run_tests
+          *.log
+```
+
+This workflow:
+- Triggers on pushes to `main`/`dev` branches and on pull requests
+- Installs necessary system dependencies (including SDL2, NCurses dev packages)
+- Caches built libraries for faster subsequent runs
+- Builds everything and runs tests
+- Fails the build if any test fails
+- Uploads test results as artifacts for debugging
+
+#### test.yml - Fast Test-Only Pipeline
+For rapid feedback on code changes, I wanted a lighter workflow that only runs tests:
+```yaml
+name: Tests
+
+on:
+  push:
+    paths:
+      - 'tests/**'
+      - 'srcs/**'
+      - 'incs/**'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - 'tests/**'
+      - 'srcs/**'
+      - 'incs/**'
+      - 'Makefile'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git
+    
+    - name: Cache Google Test
+      uses: actions/cache@v4
+      with:
+        path: libs/googletest
+        key: ${{ runner.os }}-gtest-${{ hashFiles('Makefile') }}
+    
+    - name: Build Google Test
+      run: make check_gtest
+    
+    - name: Build and run tests
+      run: make test
+```
+
+This runs only when test or source files change, providing faster feedback during development. It's perfect for catching test failures early without the overhead of building all graphics libraries (which at this point in the project take a lot of time).
+
+<br>
+
+### Googling Ment Something Different When I Was Younger (or The Google Way of Testing Stuff)
 All assertion based tests, when trying to automate them via some suit and strictly following my limited experience and knowledge about them, work the same:
 - You set up a running environment (i.e., what the specifically needs from the whole program build to work)
 - You research how the assertions are specifically done in the suite of choice
@@ -167,5 +322,173 @@ There's:
 
 And we can now spend the rest of our day (hope not) writing tests!!!!
 
+#### What Should Be Test?
+
+Good tests for this *Nibbler* project should focus, I think, on:
+- **Pure logic**: Snake movement, collision detection, growth mechanics
+- **Data structures**: Vec2 operations, segment management, food positioning
+- **State transitions**: Menu → Playing → GameOver flow
+- **Edge cases**: Boundary collisions, self-collision, minimum grid size
+- **Game rules**: Score tracking, speed progression, food spawning
+
+The goal here is to ensure the *game logic* is bulletproof, so that when bugs appear, it is first and foremost clear that they're in the presentation layer, not the core mechanics. This means that regarding the presentation layer, which covers graphics rendering, library initialization, and visual elements will be relegated to a sort of *visual* testing, as automating them in a logic-based way would be quite complicated, if possible at all. Besides this, user input related stuff is also best tested either manually or via **integration tests**, which I'll tackle later on.
+
+<br>
+
 I'll back with some more examples of what I code today in relation to tests...
 
+... And here I am. I've built unit snake test and a couple of integration tests to check the interaction between `snake`, `GameState`, and `GameManager`, all passing :D
+
+> Unit tests:
+```cpp
+#include <gtest/gtest.h>
+#include "../../incs/Snake.hpp"
+#include "../../incs/DataStructs.hpp"
+#include "../fixtures/TestHelpers.hpp"
+
+class SnakeTest : public ::testing::Test {
+	protected:
+		void SetUp() override {
+
+		}
+
+		void TearDown() override {
+
+		}
+};
+
+TEST_F(SnakeTest, SnakeInitialization) {
+	Snake snake(20, 20);
+
+	EXPECT_EQ(snake.getLength(), 4);
+}
+
+TEST_F(SnakeTest, SnakeMovement) {
+	Snake snake(20, 20);
+	Direction dir = snake.getDirection();
+	Vec2 initialPos = snake.getSegments()[0];
+
+	snake.move();
+	Vec2 newPos = snake.getSegments()[0];
+
+	if (dir == Direction::Left || dir == Direction::Right)
+		EXPECT_NE(initialPos.x, newPos.x);
+	else
+		EXPECT_NE(initialPos.y, newPos.y);
+}
+
+TEST_F(SnakeTest, SnakeGrowth) {
+	Snake snake(20, 20);
+	int initialLength = snake.getLength();
+
+	snake.grow();
+	int newLength = snake.getLength();
+
+	EXPECT_FALSE(initialLength == newLength);
+	EXPECT_EQ(initialLength, 4);
+	EXPECT_EQ(newLength, 5);
+
+	for (int i = 0; i < 10; i++)
+		snake.grow();
+
+	EXPECT_EQ(snake.getLength(), 15);
+}
+```
+<br>
+
+> Integragion tests:
+```cpp
+#include <gtest/gtest.h>
+#include "../../incs/Snake.hpp"
+#include "../../incs/DataStructs.hpp"
+#include "../fixtures/TestHelpers.hpp"
+#include "../../incs/GameManager.hpp"
+
+class SnakeCollisionTest : public ::testing::Test {
+	protected:
+		void SetUp() override {
+
+		}
+
+		void TearDown() override {
+
+		}
+};
+
+TEST_F(SnakeCollisionTest, SelfCollision) {
+	GameState state =  TestHelpers::createBasicGameState(20, 20);
+	GameManager manager(&state);
+	Snake &snake = state.snake;
+
+	if (snake.getDirection() != Direction::Right)
+		snake.changeDirection(Direction::Left);
+	else {
+		snake.changeDirection(Direction::Up);
+		manager.update();
+		snake.changeDirection(Direction::Left);
+	}
+
+	manager.update();
+	snake.grow();
+	manager.update();
+	snake.grow();
+	manager.update();
+	snake.grow();
+	manager.update();
+	snake.grow();
+	manager.update();
+	snake.grow();
+
+	// Check if already colliding
+	manager.update();
+
+	if (snake.getDirection() != Direction::Right)
+		snake.changeDirection(Direction::Left);
+	manager.update();
+	manager.update();
+	snake.changeDirection(Direction::Down);
+	manager.update();
+	manager.update();
+	snake.changeDirection(Direction::Right);
+	manager.update();
+	manager.update();
+	snake.changeDirection(Direction::Up);
+	manager.update();
+	manager.update();
+
+	EXPECT_FALSE(state.isRunning);
+}
+
+TEST_F(SnakeCollisionTest, WallCollision) {
+	GameState state =  TestHelpers::createBasicGameState(20, 20);
+	GameManager manager(&state);
+	Snake &snake = state.snake;
+	std::cout << "Game running: " << state.isRunning << std::endl;
+
+	if (snake.getDirection() == Direction::Right || snake.getDirection() == Direction::Left) {
+		snake.changeDirection(Direction::Up);
+		manager.update();
+	} else if (snake.getDirection() == Direction::Down) {
+		snake.changeDirection(Direction::Left);
+		manager.update();
+		snake.changeDirection(Direction::Up);
+		manager.update();
+	}
+
+	// Snake surely moving upwards until reaching boundary -> y = 0
+	while (snake.getSegments()[0].y > 0)
+	{
+		manager.update();
+	}
+	
+	// GameManager detects the out-of-bounds position 
+	manager.update();
+
+	EXPECT_FALSE(state.isRunning);
+	EXPECT_EQ(snake.getSegments()[0].y, -1);
+}
+```
+
+<br>
+
+Well, back to write more tests...
