@@ -94,7 +94,6 @@ TEST_F(SnakeTest, GrowthPattern) {
 
 	// at this point, the snake should have grown a couple of times and be at y = 0;
 	EXPECT_EQ(snake->getLength(), 4 + accumulated);
-	std::cout << "growths:" << growths << std::endl;
 
 	// moving down and stretching the snake all the way
 	snake->changeDirection(Direction::Right);
@@ -103,10 +102,7 @@ TEST_F(SnakeTest, GrowthPattern) {
 	snake->move();
 
 	while ((snake->getSegments()[0].x != snake->getSegments()[snake->getLength() - 1].x) && snake->getSegments()[0].y < 19)
-	{
-		std::cout << snake->getSegments()[0].x << "-" << snake->getSegments()[0].y << " vs " << snake->getSegments()[snake->getLength() - 1].x << "-" << snake->getSegments()[snake->getLength() - 1].y << std::endl;
 		snake->move();
-	}
 
 	EXPECT_EQ(snake->getSegments()[0].x,  snake->getSegments()[snake->getLength() - 1].x);
 }

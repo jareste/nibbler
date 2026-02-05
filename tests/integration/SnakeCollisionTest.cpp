@@ -29,14 +29,14 @@ class SnakeCollisionTest : public ::testing::Test {
 
 TEST_F(SnakeCollisionTest, SelfCollision) {
 	Snake &snakeRef = state->snake;
-    
-    if (snakeRef.getDirection() != Direction::Right)
-        snakeRef.changeDirection(Direction::Left);
-    else {
-        snakeRef.changeDirection(Direction::Up);
-        manager->update();
-        snakeRef.changeDirection(Direction::Left);
-    }
+	
+	if (snakeRef.getDirection() != Direction::Right)
+		snakeRef.changeDirection(Direction::Left);
+	else {
+		snakeRef.changeDirection(Direction::Up);
+		manager->update();
+		snakeRef.changeDirection(Direction::Left);
+	}
 
 	manager->update();
 	snakeRef.grow();

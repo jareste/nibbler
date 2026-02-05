@@ -89,6 +89,7 @@ int main(int argc, char **argv) {
 		0,
 		libManager.getAudioLib()
 	};
+	food.replaceInFreeSpace(&state);
 
 	GameManager gameManager(&state);
 
