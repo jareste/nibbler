@@ -27,7 +27,7 @@ jobs:
         sudo apt-get install -y build-essential cmake git
     
     - name: Cache Google Test
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: libs/googletest
         key: ${{ runner.os }}-gtest-${{ hashFiles('Makefile') }}
