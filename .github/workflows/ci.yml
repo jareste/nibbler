@@ -29,6 +29,10 @@ jobs:
           libxi-dev \
           libgl1-mesa-dev \
           libglu1-mesa-dev \
+          libsdl2-dev \
+          libsdl2-ttf-dev \
+          libsdl2-mixer-dev \
+          libncurses-dev \
           pkg-config \
           git
     
@@ -36,10 +40,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          libs/
-          .obj/
-          .dep/
-        key: ${{ runner.os }}-libs-${{ hashFiles('Makefile') }}
+          libs/SDL2
+          libs/SDL_ttf
+          libs/SDL_mixer
+          libs/raylib
+          libs/ncurses
+          libs/googletest
+        key: ${{ runner.os }}-libs-${{ hashFiles('Makefile') }}-v2
         restore-keys: |
           ${{ runner.os }}-libs-
     
@@ -47,6 +54,12 @@ jobs:
       run: |
         make check_libs
         make check_gtest
+    
+    - name: Verify SDL2 installation
+      run: |
+        ls -la libs/SDL2/ || echo "SDL2 not in libs/"
+        ls -la libs/SDL2/include/ || echo "SDL2 include not found"
+        ls -la libs/SDL2/build/ || echo "SDL2 build not found"
     
     - name: Build project
       run: make all
