@@ -1,0 +1,53 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - 'tests/**'
+      - 'srcs/**'
+      - 'incs/**'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - 'tests/**'
+      - 'srcs/**'
+      - 'incs/**'
+      - 'Makefile'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake git
+    
+    - name: Cache Google Test
+      uses: actions/cache@v3
+      with:
+        path: libs/googletest
+        key: ${{ runner.os }}-gtest-${{ hashFiles('Makefile') }}
+    
+    - name: Build Google Test
+      run: make check_gtest
+    
+    - name: Build testable objects
+      run: |
+        make directories
+        make $(make -pn | grep -E '^TESTABLE_OBJS' | cut -d= -f2)
+    
+    - name: Build and run tests
+      run: make test
+    
+    - name: Test Report
+      if: always()
+      run: |
+        echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+        ./run_tests --gtest_output=json:test_results.json || true
+        if [ -f test_results.json ]; then
+          echo "Tests completed. Check artifacts for details." >> $GITHUB_STEP_SUMMARY
+        fi

@@ -13,7 +13,8 @@
     <img alt="Raylib" src="https://img.shields.io/badge/Raylib-3D-orange?style=for-the-badge" />
 </p>
 <p align="center">
-    <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/jareste/nibbler?color=lightblue" />
+    <img alt="CI/CD" src="https://github.com/hugomgris/nibbler/actions/workflows/ci.yml/badge.svg?branch=main" />
+    <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/hugomgris/nibbler?color=lightblue" />
     <img alt="License" src="https://img.shields.io/badge/License-MIT-blue" />
     <img alt="Status" src="https://img.shields.io/badge/Status-WIP-yellow" />
 </p>

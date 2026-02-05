@@ -85,6 +85,8 @@ int Snake::getLength() const { return _length; }
 
 const Vec2 *Snake::getSegments() const { return _segments; }
 
+Direction Snake::getDirection() const { return _direction; }
+
 void Snake::move(){
 	auto head = _segments[0];
 	Vec2 previousPositions[_length];

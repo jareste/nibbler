@@ -84,6 +84,37 @@ RAYLIB_LDFLAGS   := -L$(RAYLIB_DIR)/src -lraylib -lm -lpthread -ldl -lrt -lX11
 NCURSES_LDFLAGS  := -L$(NCURSES_DIR)/lib -lncursesw -Wl,-rpath,$(NCURSES_DIR)/lib
 AUDIO_LDFLAGS    := -L$(SDL_MIXER_DIR)/build -lSDL2_mixer -Wl,-rpath,$(SDL_MIXER_DIR)/build
 
+
+# -=-=-=-=-    GOOGLE TEST -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
+GTEST_DIR		:= $(LIB_DIR)/googletest
+GTEST_REPO		:= https://github.com/google/googletest.git
+GTEST_LIB		:= $(GTEST_DIR)/build/lib/libgtest.a
+GTEST_MAIN_LIB	:= $(GTEST_DIR)/build/lib/libgtest_main.a
+GTEST_INCLUDES	:= -I$(GTEST_DIR)/googletest/include
+
+# -=-=-=-=-    TEST CONFIGURATION -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
+TEST_DIR		:= tests
+TEST_OBJDIR		:= .test_obj
+TEST_DEPDIR		:= .test_dep
+TEST_BINARY		:= run_tests
+
+# Test source files (we'll add these)
+TEST_SRCS		:= $(wildcard $(TEST_DIR)/unit/*.cpp) \
+					$(wildcard $(TEST_DIR)/integration/*.cpp)
+TEST_OBJS		:= $(patsubst $(TEST_DIR)/%.cpp,$(TEST_OBJDIR)/%.o,$(TEST_SRCS))
+TEST_DEPS		:= $(patsubst $(TEST_DIR)/%.cpp,$(TEST_DEPDIR)/%.d,$(TEST_SRCS))
+
+# Need to compile main program objects for testing (exclude main.cpp)
+TESTABLE_SRCS	:= $(filter-out $(SRCDIR)/main.cpp, $(SRCS))
+TESTABLE_OBJS	:= $(addprefix $(OBJDIR)/, $(notdir $(TESTABLE_SRCS:.cpp=.o)))
+
+TEST_CFLAGS		:= $(CFLAGS) $(GTEST_INCLUDES)
+TEST_LDFLAGS	:= $(LDFLAGS) -lpthread
+
+
+
 # -=-=-=-=-    TARGETS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
 all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
@@ -145,6 +176,19 @@ check_libs:
 		echo "$(GREEN)NCurses built successfully$(DEF_COLOR)"; \
 	fi
 	@echo "$(GREEN)All libraries ready$(DEF_COLOR)"
+
+check_gtest:
+	@if [ ! -f "$(GTEST_LIB)" ]; then \
+		echo "$(YELLOW)Google Test not found. Cloning and building...$(DEF_COLOR)"; \
+		mkdir -p $(LIB_DIR); \
+		git clone --depth 1 --branch v1.14.0 $(GTEST_REPO) $(GTEST_DIR); \
+		cd $(GTEST_DIR) && mkdir -p build && cd build && \
+		cmake -DCMAKE_CXX_STANDARD=20 .. && \
+		make -j4; \
+		echo "$(GREEN)Google Test built successfully$(DEF_COLOR)"; \
+	else \
+		echo "$(GREEN)Google Test already built$(DEF_COLOR)"; \
+	fi
 
 $(SDL_LIB_NAME): $(SDL_OBJS) $(GAME_OBJS)
 	$(CC) -shared -o $@ $^ $(SDL_LDFLAGS)
@@ -238,12 +282,39 @@ directories:
 game: re
 	./nibbler 30 30
 
+# -=-=-=-=-    TEST TARGETS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
+test: check_gtest $(TEST_BINARY)
+	@echo "$(CYAN)Running tests...$(DEF_COLOR)"
+	./$(TEST_BINARY)
+
+$(TEST_BINARY): $(TESTABLE_OBJS) $(TEST_OBJS) $(GTEST_LIB) $(GTEST_MAIN_LIB)
+	@echo "$(YELLOW)Linking test binary...$(DEF_COLOR)"
+	$(CC) -o $@ $(TESTABLE_OBJS) $(TEST_OBJS) $(GTEST_LIB) $(GTEST_MAIN_LIB) $(TEST_LDFLAGS)
+	@echo "$(GREEN)Test binary created: $(TEST_BINARY)$(DEF_COLOR)"
+
+# Compile test object files
+$(TEST_OBJDIR)/%.o: $(TEST_DIR)/%.cpp | $(TEST_OBJDIR) $(TEST_DEPDIR)
+	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $(TEST_DEPDIR)/$*.d)
+	$(CC) $(TEST_CFLAGS) -MMD -MF $(TEST_DEPDIR)/$*.d -c $< -o $@
+	@echo "$(BLUE)Compiled test: $<$(DEF_COLOR)"
+
+# Create test directories
+$(TEST_OBJDIR):
+	@mkdir -p $(TEST_OBJDIR)/unit $(TEST_OBJDIR)/integration
+
+$(TEST_DEPDIR):
+	@mkdir -p $(TEST_DEPDIR)/unit $(TEST_DEPDIR)/integration
+
+# -=-=-=-=-    CLEANUP -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
+
 clean:
-	@/bin/rm -fr $(OBJDIR) $(DEPDIR)
-	@echo "$(RED)Objects removed$(DEF_COLOR)"
+	@/bin/rm -fr $(OBJDIR) $(DEPDIR) $(LIB_OBJDIR) $(TEST_OBJDIR) $(TEST_DEPDIR)
+	@echo "$(RED)Object files removed$(DEF_COLOR)"
 
 fclean: clean
-	@/bin/rm -f $(NAME) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME)
+	@/bin/rm -f $(NAME) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(TEST_BINARY)
 	@/bin/rm -fr $(SDL_DIR) $(SDL_TTF_DIR) $(SDL_MIXER_DIR) $(RAYLIB_DIR) $(NCURSES_DIR)
 	@/bin/rm -fr checks/valgrind-unified.txt checks/valgrind-ncurses-out.txt checks/valgrind-sdl-out.txt checks/valgrind-raylib-out.txt
 	@echo "$(RED)Cleaned all binaries, external libraries and memory logs$(DEF_COLOR)"
