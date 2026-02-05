@@ -603,3 +603,21 @@ TEST_F(FoodInteractionTest, EatingTrigger) {
 	EXPECT_TRUE(foodPosition.x != newFoodPosition.x && foodPosition.y != newFoodPosition.y);
 }
 ```
+
+I added some more tests, and now I'm going home, considering that I've done enough tests for the day.
+
+Current extra stuff status:
+Regarding bonus stuff:
+- [x] 3D graphics (and overall deep-thought graphic design across platforms)
+- [ ] Configurable settings: modularity and user customization
+- [ ] Enhance gameplay (implement one of the recolected ideas)
+- [ ] Sounds
+- [x] Automated tests
+- [ ] Multiplayer
+- [ ] AI opponent
+- [ ] Performance metrics and debug mode
+- [ ] Custom maps
+- [ ] Level editor
+- [ ] Replay system
+- [ ] Turbo-refined abstraction
+- [x] Documentation
