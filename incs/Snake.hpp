@@ -27,6 +27,7 @@ class Snake {
 
 		int getLength() const;
 		const Vec2 *getSegments() const;
+		Direction getDirection() const;  //for testing
 
 		void move();
 		void changeDirection(Direction dir);
