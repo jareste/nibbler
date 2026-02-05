@@ -315,7 +315,7 @@ clean:
 
 fclean: clean
 	@/bin/rm -f $(NAME) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(TEST_BINARY)
-	@/bin/rm -fr $(SDL_DIR) $(SDL_TTF_DIR) $(SDL_MIXER_DIR) $(RAYLIB_DIR) $(NCURSES_DIR)
+	@/bin/rm -fr $(SDL_DIR) $(SDL_TTF_DIR) $(SDL_MIXER_DIR) $(RAYLIB_DIR) $(NCURSES_DIR) $(GTEST_DIR)
 	@/bin/rm -fr checks/valgrind-unified.txt checks/valgrind-ncurses-out.txt checks/valgrind-sdl-out.txt checks/valgrind-raylib-out.txt
 	@echo "$(RED)Cleaned all binaries, external libraries and memory logs$(DEF_COLOR)"
 
