@@ -79,7 +79,7 @@ RAYLIB_CFLAGS    := $(LIB_CFLAGS) -I$(RAYLIB_DIR)/src -Wno-missing-field-initial
 NCURSES_CFLAGS   := $(LIB_CFLAGS) -I$(NCURSES_DIR)/include -I$(NCURSES_DIR)/include/ncursesw
 AUDIO_CFLAGS     := $(LIB_CFLAGS) -I$(SDL_MIXER_DIR)/include
 
-SDL_LDFLAGS      := -L$(SDL_DIR)/build -lSDL2-2.0 -L$(SDL_TTF_DIR)/build -lSDL2_ttf -Wl,-rpath,$(SDL_DIR)/build -Wl,-rpath,$(SDL_TTF_DIR)/build
+SDL_LDFLAGS      := -L$(SDL_DIR)/build -lSDL2 -L$(SDL_TTF_DIR)/build -lSDL2_ttf -Wl,-rpath,$(SDL_DIR)/build -Wl,-rpath,$(SDL_TTF_DIR)/build
 RAYLIB_LDFLAGS   := -L$(RAYLIB_DIR)/src -lraylib -lm -lpthread -ldl -lrt -lX11
 NCURSES_LDFLAGS  := -L$(NCURSES_DIR)/lib -lncursesw -Wl,-rpath,$(NCURSES_DIR)/lib
 AUDIO_LDFLAGS    := -L$(SDL_MIXER_DIR)/build -lSDL2_mixer -Wl,-rpath,$(SDL_MIXER_DIR)/build
@@ -124,14 +124,23 @@ check_libs:
 		echo "$(YELLOW)SDL2 not found. Cloning...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
 		git clone --depth 1 --branch release-2.28.x $(SDL_REPO) $(SDL_DIR); \
-		cd $(SDL_DIR) && mkdir -p build && cd build && cmake .. && make -j4; \
+		cd $(SDL_DIR) && mkdir -p build && cd build && \
+		cmake -DCMAKE_BUILD_TYPE=Release \
+			-DBUILD_SHARED_LIBS=ON .. && \
+		make -j4; \
 		echo "$(GREEN)SDL2 built successfully$(DEF_COLOR)"; \
 	fi
 	@if [ ! -f "$(SDL_TTF_DIR)/CMakeLists.txt" ]; then \
 		echo "$(YELLOW)SDL_ttf not found. Cloning...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
 		git clone --depth 1 --branch release-2.22.x $(SDL_TTF_REPO) $(SDL_TTF_DIR); \
-		cd $(SDL_TTF_DIR) && mkdir -p build && cd build && cmake -DSDL2_DIR=$(PWD)/$(SDL_DIR) .. && make -j4; \
+		cd $(SDL_TTF_DIR)/external && ./download.sh; \
+		cd $(SDL_TTF_DIR) && mkdir -p build && cd build && \
+		cmake -DSDL2_DIR=$(PWD)/$(SDL_DIR) \
+			-DCMAKE_BUILD_TYPE=Release \
+			-DBUILD_SHARED_LIBS=ON \
+			-DSDL2TTF_VENDORED=ON .. && \
+		make -j4; \
 		echo "$(GREEN)SDL_ttf built successfully$(DEF_COLOR)"; \
 	fi
 	@if [ ! -f "$(SDL_MIXER_DIR)/CMakeLists.txt" ]; then \
