@@ -117,7 +117,9 @@ TEST_LDFLAGS	:= $(LDFLAGS) -lpthread
 
 # -=-=-=-=-    TARGETS -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
-all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
+all: directories
+	@$(MAKE) check_libs
+	@$(MAKE) $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
 
 check_libs:
 	@if [ ! -f "$(SDL_DIR)/build/libSDL2-2.0.so" ] && [ ! -f "$(SDL_DIR)/build/libSDL2.so" ]; then \
@@ -221,72 +223,72 @@ check_gtest:
 		echo "$(GREEN)Google Test already built$(DEF_COLOR)"; \
 	fi
 
-$(SDL_LIB_NAME): $(SDL_OBJS) $(GAME_OBJS)
+$(SDL_LIB_NAME): $(SDL_OBJS) $(GAME_OBJS) | check_libs
 	$(CC) -shared -o $@ $^ $(SDL_LDFLAGS)
 	@echo "$(GREEN)Built $(SDL_LIB_NAME)$(DEF_COLOR)"
 
-$(RAYLIB_LIB_NAME): $(RAYLIB_OBJS) $(GAME_OBJS)
+$(RAYLIB_LIB_NAME): $(RAYLIB_OBJS) $(GAME_OBJS) | check_libs
 	$(CC) -shared -o $@ $^ $(RAYLIB_LDFLAGS)
 	@echo "$(GREEN)Built $(RAYLIB_LIB_NAME)$(DEF_COLOR)"
 
-$(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS)
+$(NCURSES_LIB_NAME): $(NCURSES_OBJS) $(GAME_OBJS) | check_libs
 	$(CC) -shared -o $@ $^ $(NCURSES_LDFLAGS)
 	@echo "$(GREEN)Built $(NCURSES_LIB_NAME)$(DEF_COLOR)"
 
-$(AUDIO_LIB_NAME): $(AUDIO_OBJS)
+$(AUDIO_LIB_NAME): $(AUDIO_OBJS) | check_libs
 	$(CC) -shared -o $@ $^ $(AUDIO_LDFLAGS)
 	@echo "$(GREEN)Built $(AUDIO_LIB_NAME)$(DEF_COLOR)"
 
 # SDL object file compilation
-.obj/libs/SDLGraphic.o: $(GFX_DIR)/SDLGraphic.cpp Makefile
+.obj/libs/SDLGraphic.o: $(GFX_DIR)/SDLGraphic.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLGraphic.d
 
 # ParticleSystem object file compilation (for SDL)
-.obj/libs/SDLParticleSystem.o: $(GFX_DIR)/SDLParticleSystem.cpp Makefile
+.obj/libs/SDLParticleSystem.o: $(GFX_DIR)/SDLParticleSystem.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLParticleSystem.d
 
 # TextRenderer object file compilation (for SDL)
-.obj/libs/SDLTextRenderer.o: $(GFX_DIR)/SDLTextRenderer.cpp Makefile
+.obj/libs/SDLTextRenderer.o: $(GFX_DIR)/SDLTextRenderer.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLTextRenderer.d
 
 # TitleHandler object file compilation (for SDL)
-.obj/libs/SDLTitleHandler.o: $(GFX_DIR)/SDLTitleHandler.cpp Makefile
+.obj/libs/SDLTitleHandler.o: $(GFX_DIR)/SDLTitleHandler.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(SDL_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLTitleHandler.d
 
 # Raylib object file compilation
-.obj/libs/RaylibGraphic.o: $(GFX_DIR)/RaylibGraphic.cpp Makefile
+.obj/libs/RaylibGraphic.o: $(GFX_DIR)/RaylibGraphic.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibGraphic.d
 
 # Raylib TitleHandler object file compilation
-.obj/libs/RaylibTitleHandler.o: $(GFX_DIR)/RaylibTitleHandler.cpp Makefile
+.obj/libs/RaylibTitleHandler.o: $(GFX_DIR)/RaylibTitleHandler.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTitleHandler.d
 
 # Raylib TextRenderer object file compilation
-.obj/libs/RaylibTextRenderer.o: $(GFX_DIR)/RaylibTextRenderer.cpp Makefile
+.obj/libs/RaylibTextRenderer.o: $(GFX_DIR)/RaylibTextRenderer.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(RAYLIB_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/RaylibTextRenderer.d
 
 # NCurses object file compilation
-.obj/libs/NCursesGraphic.o: $(GFX_DIR)/NCursesGraphic.cpp Makefile
+.obj/libs/NCursesGraphic.o: $(GFX_DIR)/NCursesGraphic.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(NCURSES_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/NCursesGraphic.d
 
 # Audio object file compilation
-.obj/libs/SDLMIXAudio.o: $(AUDIO_DIR)/SDLMIXAudio.cpp Makefile
+.obj/libs/SDLMIXAudio.o: $(AUDIO_DIR)/SDLMIXAudio.cpp Makefile | check_libs
 	@mkdir -p .obj/libs
 	@mkdir -p .dep/libs
 	$(CC) $(AUDIO_CFLAGS) $(DEPFLAGS) -c $< -o $@ -MF .dep/libs/SDLMIXAudio.d
@@ -352,4 +354,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re directories check_libs
+.PHONY: all clean fclean re directories check_libs test check_gtest game
