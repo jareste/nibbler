@@ -120,8 +120,8 @@ TEST_LDFLAGS	:= $(LDFLAGS) -lpthread
 all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
 
 check_libs:
-	@if [ ! -f "$(SDL_DIR)/build/libSDL2.so" ] && [ ! -f "$(SDL_DIR)/build/libSDL2-2.0.so" ]; then \
-		echo "$(YELLOW)SDL2 not found. Cloning and building...$(DEF_COLOR)"; \
+	@if [ ! -f "$(SDL_DIR)/build/libSDL2-2.0.so" ] && [ ! -f "$(SDL_DIR)/build/libSDL2.so" ]; then \
+		echo "$(YELLOW)SDL2 shared library not found. Building...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
 		if [ ! -f "$(SDL_DIR)/CMakeLists.txt" ]; then \
 			git clone --depth 1 --branch release-2.28.x $(SDL_REPO) $(SDL_DIR); \
@@ -130,9 +130,22 @@ check_libs:
 		cmake -DCMAKE_BUILD_TYPE=Release \
 			-DBUILD_SHARED_LIBS=ON .. && \
 		make -j4; \
+		if [ -f libSDL2-2.0.so ] && [ ! -f libSDL2.so ]; then \
+			ln -sf libSDL2-2.0.so libSDL2.so; \
+		fi; \
 		echo "$(GREEN)SDL2 built successfully$(DEF_COLOR)"; \
+	elif [ -f "$(SDL_DIR)/build/libSDL2.a" ]; then \
+		echo "$(YELLOW)SDL2 static library found, rebuilding as shared...$(DEF_COLOR)"; \
+		cd $(SDL_DIR) && rm -rf build && mkdir -p build && cd build && \
+		cmake -DCMAKE_BUILD_TYPE=Release \
+			-DBUILD_SHARED_LIBS=ON .. && \
+		make -j4; \
+		if [ -f libSDL2-2.0.so ] && [ ! -f libSDL2.so ]; then \
+			ln -sf libSDL2-2.0.so libSDL2.so; \
+		fi; \
+		echo "$(GREEN)SDL2 rebuilt as shared library$(DEF_COLOR)"; \
 	fi
-	@if [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf.so" ] && [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf-2.0.so" ]; then \
+	@if [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf-2.0.so" ] && [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf.so" ]; then \
 		echo "$(YELLOW)SDL_ttf not found. Cloning and building...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
 		if [ ! -f "$(SDL_TTF_DIR)/CMakeLists.txt" ]; then \
@@ -147,6 +160,9 @@ check_libs:
 			-DBUILD_SHARED_LIBS=ON \
 			-DSDL2TTF_VENDORED=ON .. && \
 		make -j4; \
+		if [ -f libSDL2_ttf-2.0.so ] && [ ! -f libSDL2_ttf.so ]; then \
+			ln -sf libSDL2_ttf-2.0.so libSDL2_ttf.so; \
+		fi; \
 		echo "$(GREEN)SDL_ttf built successfully$(DEF_COLOR)"; \
 	fi
 	@if [ ! -f "$(SDL_MIXER_DIR)/CMakeLists.txt" ]; then \
