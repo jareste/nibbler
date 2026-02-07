@@ -120,22 +120,28 @@ TEST_LDFLAGS	:= $(LDFLAGS) -lpthread
 all: check_libs directories $(SDL_LIB_NAME) $(RAYLIB_LIB_NAME) $(NCURSES_LIB_NAME) $(AUDIO_LIB_NAME) $(NAME)
 
 check_libs:
-	@if [ ! -f "$(SDL_DIR)/CMakeLists.txt" ]; then \
-		echo "$(YELLOW)SDL2 not found. Cloning...$(DEF_COLOR)"; \
+	@if [ ! -f "$(SDL_DIR)/build/libSDL2.so" ] && [ ! -f "$(SDL_DIR)/build/libSDL2-2.0.so" ]; then \
+		echo "$(YELLOW)SDL2 not found. Cloning and building...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
-		git clone --depth 1 --branch release-2.28.x $(SDL_REPO) $(SDL_DIR); \
-		cd $(SDL_DIR) && mkdir -p build && cd build && \
+		if [ ! -f "$(SDL_DIR)/CMakeLists.txt" ]; then \
+			git clone --depth 1 --branch release-2.28.x $(SDL_REPO) $(SDL_DIR); \
+		fi; \
+		cd $(SDL_DIR) && rm -rf build && mkdir -p build && cd build && \
 		cmake -DCMAKE_BUILD_TYPE=Release \
 			-DBUILD_SHARED_LIBS=ON .. && \
 		make -j4; \
 		echo "$(GREEN)SDL2 built successfully$(DEF_COLOR)"; \
 	fi
-	@if [ ! -f "$(SDL_TTF_DIR)/CMakeLists.txt" ]; then \
-		echo "$(YELLOW)SDL_ttf not found. Cloning...$(DEF_COLOR)"; \
+	@if [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf.so" ] && [ ! -f "$(SDL_TTF_DIR)/build/libSDL2_ttf-2.0.so" ]; then \
+		echo "$(YELLOW)SDL_ttf not found. Cloning and building...$(DEF_COLOR)"; \
 		mkdir -p $(LIB_DIR); \
-		git clone --depth 1 --branch release-2.22.x $(SDL_TTF_REPO) $(SDL_TTF_DIR); \
-		cd $(SDL_TTF_DIR)/external && ./download.sh; \
-		cd $(SDL_TTF_DIR) && mkdir -p build && cd build && \
+		if [ ! -f "$(SDL_TTF_DIR)/CMakeLists.txt" ]; then \
+			git clone --depth 1 --branch release-2.22.x $(SDL_TTF_REPO) $(SDL_TTF_DIR); \
+		fi; \
+		if [ ! -d "$(SDL_TTF_DIR)/external/freetype/.git" ]; then \
+			cd $(SDL_TTF_DIR)/external && ./download.sh; \
+		fi; \
+		cd $(SDL_TTF_DIR) && rm -rf build && mkdir -p build && cd build && \
 		cmake -DSDL2_DIR=$(PWD)/$(SDL_DIR) \
 			-DCMAKE_BUILD_TYPE=Release \
 			-DBUILD_SHARED_LIBS=ON \
