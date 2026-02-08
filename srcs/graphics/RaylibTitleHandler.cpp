@@ -86,17 +86,17 @@ void RaylibTitleHandler::drawTitle() {
 	// head
 	position.x += graphic.cubeSize * 2;
 	graphic.drawCubeCustomFaces(position, graphic.cubeSize, graphic.cubeSize, graphic.cubeSize,
-									graphic.snakeLightFront, graphic.snakeHidden, graphic.snakeLightTop, graphic.snakeHidden, graphic.snakeLightSide, graphic.snakeHidden);
+									graphic.snakeALightFront, graphic.snakeAHidden, graphic.snakeALightTop, graphic.snakeAHidden, graphic.snakeALightSide, graphic.snakeAHidden);
 
 	position.x += graphic.cubeSize;
 	position.y += 0.1f;
 	for (int i = 0; i < 11; i++) {
 		if (i % 2 != 0) {
 			graphic.drawCubeCustomFaces(position, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f,
-									graphic.snakeLightFront, graphic.snakeHidden, graphic.snakeLightTop, graphic.snakeHidden, graphic.snakeLightSide, graphic.snakeHidden);
+									graphic.snakeALightFront, graphic.snakeAHidden, graphic.snakeALightTop, graphic.snakeAHidden, graphic.snakeALightSide, graphic.snakeAHidden);
 		} else {
 			graphic.drawCubeCustomFaces(position, size * 0.8f, size * 0.8f, size * 0.8f,
-			                    graphic.snakeDarkFront, graphic.snakeHidden, graphic.snakeDarkTop, graphic.snakeHidden, graphic.snakeDarkSide, graphic.snakeHidden);
+			                    graphic.snakeADarkFront, graphic.snakeAHidden, graphic.snakeADarkTop, graphic.snakeAHidden, graphic.snakeADarkSide, graphic.snakeAHidden);
 		}
 		position.x += graphic.cubeSize;
 	}
@@ -104,10 +104,10 @@ void RaylibTitleHandler::drawTitle() {
 	for (int i = 1; i < 29; i++) {
 		if (i % 2 != 0) {
 			graphic.drawCubeCustomFaces(position, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f,
-									graphic.snakeLightFront, graphic.snakeHidden, graphic.snakeLightTop, graphic.snakeHidden, graphic.snakeLightSide, graphic.snakeHidden);
+									graphic.snakeALightFront, graphic.snakeAHidden, graphic.snakeALightTop, graphic.snakeAHidden, graphic.snakeALightSide, graphic.snakeAHidden);
 		} else {
 			graphic.drawCubeCustomFaces(position, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f, graphic.cubeSize * 0.8f,
-			                    graphic.snakeDarkFront, graphic.snakeHidden, graphic.snakeDarkTop, graphic.snakeHidden, graphic.snakeDarkSide, graphic.snakeHidden);
+			                    graphic.snakeADarkFront, graphic.snakeAHidden, graphic.snakeADarkTop, graphic.snakeAHidden, graphic.snakeADarkSide, graphic.snakeAHidden);
 		}
 		position.z -= graphic.cubeSize;
 	}

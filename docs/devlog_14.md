@@ -210,4 +210,217 @@ In the land of hopes and dreams, an example of playful experimentation with the 
 <br>
 <br>
 
-## 14.4 Multiplayer implementation (or I Can't Come Up With a Smart Title For This Section Right Now Because I'm Mentally Toasted)
+## 14.4 Multiplayer Implementation (or I Can't Come Up With a Smart Title For This Section Right Now Because I'm Mentally Toasted)
+The multiplayer implementation started as a seemingly straightforward task: take one snake, add another, give them different controls, done. But as with most things in this project, the devil was in the details. What began as "just add `snake_B`" cascaded into refactoring input systems, rethinking particle trails, extending color palettes, and ultimately questioning the entire architecture of the game. But let's start from the beginning.
+
+### The Foundation: Two Snakes, One Game
+The first step was obvious: `GameState` needed two snakes instead of one. This meant changing from a single `Snake *snake` pointer to two: `snake_A` and `snake_B`. Simple enough in theory, but it rippled through every part of the codebase that touched game state—rendering, collision detection, food handling, input processing. The single-snake assumption was baked into everything.
+
+In `GameManager`, the initialization logic needed to spawn both snakes in non-overlapping positions. I went with a basic approach: `snake_A` starts at `(width / 4, height / 2)` moving right, and `snake_B` starts at `(3 * width / 4, height / 2)` moving left. This gives them enough separation to avoid immediate collision and sets up a natural confrontation in the center of the arena.
+
+```cpp
+// GameState now looks like this:
+struct GameState {
+    int width;
+    int height;
+    Snake& snake_A;
+    Snake& snake_B;
+    Food& food;
+    int score;
+    bool isRunning;
+    GameStateType state;
+    bool isPaused;
+};
+```
+
+### Input Fight: The Arrow Keys vs WASD Saga
+Here's where things got interesting. The original input system was built around a single snake responding to arrow keys. Adding a second player meant adding WASD controls, which sounds simple until you realize that the `Input` enum was a flat list of actions, not player-specific commands.
+
+The naive approach would've been to just add `Input::W`, `Input::A`, `Input::S`, `Input::D` and route them in `GameManager`. But this felt messy and wouldn't scale well if I ever wanted to add more players or customizable controls. So I took a step back and extended the enum to be player-aware:
+
+```cpp
+enum class Input {
+    None,
+    // Player A (Arrow Keys)
+    Up_A, Down_A, Left_A, Right_A,
+    // Player B (WASD)
+    Up_B, Down_B, Left_B, Right_B,
+    // Shared Controls
+    SwitchLib1, SwitchLib2, SwitchLib3,
+    Pause, Enter, Quit
+};
+```
+
+This immediately clarified intent. When `SDL` or `NCurses` or `Raylib` detects a keypress, it returns an `Input` that explicitly states which player it's for. No ambiguity, no routing logic in the wrong place.
+
+But then came the next problem: **input buffering**. The original single-snake implementation had one `std::queue<Input> inputBuffer` with a max size of 3. This allowed for some look-ahead without letting players queue up massive input sequences that would feel unresponsive. With two players, I had two options:
+
+1. **Unified buffer**: Both players share one queue, inputs processed in order of arrival
+2. **Separate buffers**: Each player has their own queue
+
+I went with **separate buffers** (`inputBuffer_A` and `inputBuffer_B`) because it's fairer and clearer. If Player A mashes keys frantically, it shouldn't delay Player B's inputs. Each player gets their own 3-input buffer, processed independently.
+
+The refactoring in `GameManager` to support this was straightforward but tedious. Every place that touched `inputBuffer` now needed to handle both buffers. The `processNextInput()` function got split into player-specific logic:
+
+```cpp
+void GameManager::processNextInput() {
+    // Process Player A's input
+    if (!inputBuffer_A.empty()) {
+        Input input = inputBuffer_A.front();
+        inputBuffer_A.pop();
+        
+        switch (input) {
+            case Input::Up_A:    _state->snake_A.changeDirection(Direction::UP); break;
+            case Input::Down_A:  _state->snake_A.changeDirection(Direction::DOWN); break;
+            case Input::Left_A:  _state->snake_A.changeDirection(Direction::LEFT); break;
+            case Input::Right_A: _state->snake_A.changeDirection(Direction::RIGHT); break;
+            default: break;
+        }
+    }
+    
+    // Process Player B's input (same pattern)
+    if (!inputBuffer_B.empty()) {
+        Input input = inputBuffer_B.front();
+        inputBuffer_B.pop();
+        
+        switch (input) {
+            case Input::Up_B:    _state->snake_B.changeDirection(Direction::UP); break;
+            case Input::Down_B:  _state->snake_B.changeDirection(Direction::DOWN); break;
+            case Input::Left_B:  _state->snake_B.changeDirection(Direction::LEFT); break;
+            case Input::Right_B: _state->snake_B.changeDirection(Direction::RIGHT); break;
+            default: break;
+        }
+    }
+}
+```
+
+### The Particle Trail Problem: A Lesson in Shared State
+With two snakes on screen, the visual differentiation became crucial. I already had color-coded snakes (`snake_A` in light blue, `snake_B` in golden yellow), but the particle trails were broken. Both snakes were spawning trails, but they were... crossing? Interpolating between each other's positions? It looked awful.
+
+The bug was subtle. In `SDLGraphic`, I had `lastTailX` and `lastTailY` as member variables to track the previous frame's tail position for smooth particle interpolation. But with two snakes, they were **sharing that state**. When `snake_A` moved, it would update `lastTailX/Y`, then `snake_B` would immediately overwrite it, causing the interpolation to draw particles between `snake_A`'s old position and `snake_B`'s current position. Chaos.
+
+The fix was to encapsulate the tail state per snake. I created a `SnakeTailState` struct:
+
+```cpp
+struct SnakeTailState {
+    float lastX = -1.0f;
+    float lastY = -1.0f;
+    bool isFirstFrame = true;
+};
+```
+
+And gave each snake its own instance in `SDLGraphic`:
+
+```cpp
+SnakeTailState snakeATail;
+SnakeTailState snakeBTail;
+```
+
+Now `drawSnake()` takes a reference to the appropriate tail state along with the snake itself and its color. Each snake's trail is tracked independently, and the interpolation works correctly. Problem solved.
+
+```cpp
+void SDLGraphic::drawSnake(const Snake &snake, SnakeTailState &tailState, const SDL_Color &color) {
+    // Draw snake segments...
+    
+    // Handle tail particle spawning with independent state
+    if (i == snake.getLength() - 1 && snake.getLength() > 1) {
+        float tailX = borderOffset + (snake.getSegments()[i].x * cellSize) + (cellSize / 2.0f);
+        float tailY = borderOffset + (snake.getSegments()[i].y * cellSize) + (cellSize / 2.0f);
+        
+        if (!tailState.isFirstFrame && (tailState.lastX != tailX || tailState.lastY != tailY)) {
+            // Interpolate particles between last position and current position
+            // using the snake-specific color
+            particleSystem->spawnSnakeTrail(interpX, interpY, 1, direction, color);
+        }
+        
+        tailState.lastX = tailX;
+        tailState.lastY = tailY;
+        tailState.isFirstFrame = false;
+    }
+}
+```
+
+### Color Coordination: Cross-Library Consistency
+Once the trails were fixed, I noticed that the color palette needed expansion. `snake_A` was using light blue (`{70, 130, 180, 255}`), but `snake_B` needed its own distinct colors. I went with light green (`{144, 238, 144, 255}`) and golden yellow (`{255, 215, 0, 255}`) to visually differentiate the second snake.
+
+But here's the thing: these colors needed to exist across all three libraries. In `SDL`, they're simple `SDL_Color` constants. In `NCurses`, I had to map them to color pairs using the limited palette (I ended up reusing `COLOR_MAGENTA` for light green and `COLOR_YELLOW` for golden yellow, scaling RGB values to the 0-1000 range that `ncurses` uses). In `Raylib`, the 3D isometric rendering meant each snake needed **three-component color sets** (light top, light front, light side, and dark top, dark front, dark side) to properly render the cubes.
+
+The `Raylib` color refactoring was the most involved. I renamed the original snake colors to `snakeA*` and added a full `snakeB*` set with green/yellow variants:
+
+```cpp
+// Snake A colors - Blue shades
+Color snakeALightTop = { 135, 206, 250, 255 };    // Light sky blue
+Color snakeALightFront = { 26, 64, 96, 255 };     // Ground blue
+Color snakeALightSide = { 70, 130, 180, 255 };    // Steel blue
+
+// Snake B colors - Green/Yellow shades
+Color snakeBLightTop = { 255, 255, 153, 255 };    // Light yellow
+Color snakeBLightFront = { 184, 134, 11, 255 };   // Dark golden rod
+Color snakeBLightSide = { 255, 215, 0, 255 };     // Golden yellow
+```
+
+This consistency across libraries is tedious but necessary. Players switching between visual modes should see the same color associations, even if the rendering styles are wildly different.
+
+### Collision Detection: Now With More Ways to Die
+Multiplayer collision detection is inherently more complex than single-player. In single-player, you check:
+1. Wall collision (is the head out of bounds?)
+2. Self-collision (does the head overlap any body segment?)
+3. Food collision (does the head overlap the food?)
+
+In multiplayer, you add:
+4. Snake-to-snake collision (does `snake_A`'s head overlap any of `snake_B`'s segments, or vice versa?)
+
+The first three were already implemented, but they only checked `snake_A`. I needed to extend `checkGameOverCollision()` to handle both snakes:
+
+```cpp
+bool GameManager::checkGameOverCollision() {
+    // Check snake_A
+    Vec2 headA = _state->snake_A.getSegments()[0];
+    if (headA.x < 0 || headA.x >= _state->width || 
+        headA.y < 0 || headA.y >= _state->height) {
+        return false;
+    }
+    
+    // Check snake_A self-collision
+    for (int i = 1; i < _state->snake_A.getLength(); i++) {
+        if (_state->snake_A.getSegments()[i] == headA) {
+            return false;
+        }
+    }
+    
+    // Check snake_B (same pattern)
+    // ...
+    
+    // Check snake-to-snake collision
+    // (Does snake_A hit snake_B's body? Does snake_B hit snake_A's body?)
+    // ...
+}
+```
+
+Food collision also needed updating. Previously, only `snake_A` could eat food. Now both snakes compete for it. Whichever snake's head reaches the food first gets the point and triggers a respawn. The logic is simple: check `snake_A`'s head first, then `snake_B`'s head. First match wins.
+
+### Current State: SDL Done, NCurses and Raylib Pending
+As of writing this, the multiplayer implementation is **fully functional in SDL**. Both snakes render correctly with independent particle trails, inputs are properly buffered and processed, colors are distinct, and collision detection works (mostly—there's probably edge cases I haven't hit yet).
+
+The porting to `NCurses` and `Raylib` is pending, but the heavy lifting is done. The core logic in `GameManager` is library-agnostic, so porting is "just" a matter of:
+- Updating `pollInput()` to map WASD keys to `Input::Up_B/Down_B/Left_B/Right_B`
+- Updating `drawSnake()` calls to render both snakes
+- Ensuring color pairs/palettes include the second snake's colors
+
+The architecture decisions (separate input buffers, independent tail state, player-specific input enums) should make the port straightforward. But I've said that before, and here I am, writing a devlog about how "straightforward" things never are.
+
+### What's Left
+Before I can call multiplayer done across all libraries, I need to:
+1. Port the input handling to `NCurses` and `Raylib`
+2. Render both snakes in all three visual modes
+3. Test collision detection exhaustively (especially snake-to-snake)
+4. Decide how scoring works (shared score? individual scores? does it matter for the academic submission?)
+5. Figure out game-over conditions (what happens when one snake dies? both die? game ends immediately or continues with one player?)
+
+But that's tomorrow's problem. For now, the foundation is solid, the refactoring is complete, and the game is one step closer to being a real multiplayer experience. Phase 1 is almost done. 
+
+Actually, wait, no, I lied. One more thing needs to be registered: **the compile succeeded**. After all that refactoring, all those changes to `GameManager`, `Input`, `SDLGraphic`, the separate buffers, the tail state structs—it compiled cleanly on the first `make`. No linker errors, no missing includes, no typos. That never happens. I'm taking it as a sign that the architecture is sound. Or I'm just getting better at this. Or both. Probably both.
+
+Okay, now I'm done for the day. Sunday, 20:00, goodbye day 18...
+
+...and hello, monday, day 19, 9:00. Let's continue with the multiplayer implementation.

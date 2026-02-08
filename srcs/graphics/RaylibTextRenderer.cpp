@@ -193,7 +193,7 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 	
 	// "YOU " - blue
 	DrawText3D(customFont, youText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
-	           graphic.snakeLightSide, 0.0f, 7.0f, 7.0f);
+	           graphic.snakeALightSide, 0.0f, 7.0f, 7.0f);
 	
 	// Move position for next word
 	currentPos.x += youWidth;

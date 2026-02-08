@@ -214,10 +214,10 @@ void RaylibGraphic::drawSnake(const Snake* snake) {
 		// Checkerboard pattern for all segments
 		if (i % 2 == 0) {
 			drawCubeCustomFaces(position, size, size, size,
-			                    snakeLightFront, snakeHidden, snakeLightTop, snakeHidden, snakeLightSide, snakeHidden);
+			                    snakeALightFront, snakeAHidden, snakeALightTop, snakeAHidden, snakeALightSide, snakeAHidden);
 		} else {
 			drawCubeCustomFaces(position, size, size, size,
-			                    snakeDarkFront, snakeHidden, snakeDarkTop, snakeHidden, snakeDarkSide, snakeHidden);
+			                    snakeADarkFront, snakeAHidden, snakeADarkTop, snakeAHidden, snakeADarkSide, snakeAHidden);
 		}
 	}
 }
