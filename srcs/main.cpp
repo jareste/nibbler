@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
 	const std::string audioLib = "./nibbler_sdl_mix.so";
 
-	int currentLib = 2;
+	int currentLib = 1;
 
 	LibraryManager libManager;
 	if (!libManager.loadGraphicLib(graphicLibs[currentLib].data()) || !libManager.loadAudioLib(audioLib.c_str()))
@@ -78,10 +78,11 @@ int main(int argc, char **argv) {
 	//init audio
 	libManager.getAudioLib()->init();
 
-	Snake snake(width, height);
+	Snake snake_A(width, height);
+	Snake snake_B(width, height);
 	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
 	GameState state {
-		width, height, snake, food,
+		width, height, snake_A, snake_B, food,
 		false,
 		true,
 		false,
@@ -167,7 +168,8 @@ int main(int argc, char **argv) {
 				
 			case GameStateType::GameOver:
 				if (input == Input::Enter) {
-					snake = Snake(width, height);
+					snake_A = Snake(width, height);
+					snake_B = Snake(snake_A, width, height);
 					food = Food(Utils::getRandomVec2(width - 1, height - 1), width, height);
 					state.score = 0;
 					state.gameOver = false;

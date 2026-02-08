@@ -513,15 +513,15 @@ void NCursesGraphic::drawBorder() {
 
 void NCursesGraphic::drawSnake(const GameState &state) {
 	wattron(gameWindow, COLOR_PAIR(1));
-	for (int i = 0; i < state.snake.getLength(); ++i) {
-		int y = state.snake.getSegments()[i].y + 4;
-		int x = (state.snake.getSegments()[i].x * 2) + 4;
+	for (int i = 0; i < state.snake_A.getLength(); ++i) {
+		int y = state.snake_A.getSegments()[i].y + 4;
+		int x = (state.snake_A.getSegments()[i].x * 2) + 4;
 		
 		if (i == 0) {
 			mvwaddstr(gameWindow, y, x, "⬢ ");
 		} else {
 			mvwaddstr(gameWindow, y, x,
-				(i == state.snake.getLength() - 1) ? "○ " :
+				(i == state.snake_A.getLength() - 1) ? "○ " :
 				(i % 2 == 0) ? "✛ " : "✲ "
 			);
 		}

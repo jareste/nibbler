@@ -268,7 +268,7 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	
 	drawGroundPlane();
 	//drawWalls();
-	drawSnake(&state.snake);
+	drawSnake(&state.snake_A);
 	drawFood(&state.food);
 
 	// DEBUG

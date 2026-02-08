@@ -3,8 +3,7 @@
 
 SDLGraphic::SDLGraphic() : window(nullptr), renderer(nullptr), cellSize(50), borderOffset(0),
 	spawnInterval(0.3f), animationSpeed(.5f), enableTunnelEffect(true),
-	lastFoodX(-1), lastFoodY(-1),
-	lastTailX(-1.0f), lastTailY(-1.0f), isFirstFrame(true) {
+	lastFoodX(-1), lastFoodY(-1) {
 	lastSpawnTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -93,7 +92,8 @@ void SDLGraphic::render(const GameState& state, float deltaTime) {
 	renderTunnelEffect();
 	particleSystem->render();
 	
-	drawSnake(state);
+	drawSnake(state.snake_A, snakeATail, lightBlue);
+	drawSnake(state.snake_B, snakeBTail, goldenYellow);
 	drawFood(state);
 
 	drawBorder(cellSize);
@@ -101,23 +101,23 @@ void SDLGraphic::render(const GameState& state, float deltaTime) {
 	SDL_RenderPresent(renderer);
 }
 
-void SDLGraphic::drawSnake(const GameState &state) {
-	setRenderColor(lightBlue);
-	for (int i = 0; i < state.snake.getLength(); ++i) {
+void SDLGraphic::drawSnake(const Snake &snake, SnakeTailState &tailState, const SDL_Color &color) {
+	setRenderColor(color);
+	for (int i = 0; i < snake.getLength(); ++i) {
 		SDL_Rect rect = {
-			borderOffset + (state.snake.getSegments()[i].x * cellSize),
-			borderOffset + (state.snake.getSegments()[i].y * cellSize),
+			borderOffset + (snake.getSegments()[i].x * cellSize),
+			borderOffset + (snake.getSegments()[i].y * cellSize),
 			cellSize,
 			cellSize
 		};
 		SDL_RenderFillRect(renderer, &rect);
 		
-		if (i == state.snake.getLength() - 1 && state.snake.getLength() > 1) {
-			float tailX = borderOffset + (state.snake.getSegments()[i].x * cellSize) + (cellSize / 2.0f);
-			float tailY = borderOffset + (state.snake.getSegments()[i].y * cellSize) + (cellSize / 2.0f);
+		if (i == snake.getLength() - 1 && snake.getLength() > 1) {
+			float tailX = borderOffset + (snake.getSegments()[i].x * cellSize) + (cellSize / 2.0f);
+			float tailY = borderOffset + (snake.getSegments()[i].y * cellSize) + (cellSize / 2.0f);
 			
-			Vec2 tail = state.snake.getSegments()[i];
-			Vec2 beforeTail = state.snake.getSegments()[i - 1];
+			Vec2 tail = snake.getSegments()[i];
+			Vec2 beforeTail = snake.getSegments()[i - 1];
 			float direction = 0.0f;
 			
 			if (tail.x > beforeTail.x) direction = 0.0f;		// Moving right
@@ -125,25 +125,25 @@ void SDLGraphic::drawSnake(const GameState &state) {
 			else if (tail.y > beforeTail.y) direction = 90.0f;  // Moving down
 			else if (tail.y < beforeTail.y) direction = 270.0f; // Moving up
 			
-			if (!isFirstFrame && (lastTailX != tailX || lastTailY != tailY)) {
-				float dx = tailX - lastTailX;
-				float dy = tailY - lastTailY;
+			if (!tailState.isFirstFrame && (tailState.lastX != tailX || tailState.lastY != tailY)) {
+				float dx = tailX - tailState.lastX;
+				float dy = tailY - tailState.lastY;
 				float distance = sqrtf(dx * dx + dy * dy);
 				
 				int steps = static_cast<int>(distance / 15.0f) + 1;
 				
 				for (int step = 0; step < steps; ++step) {
 					float t = static_cast<float>(step) / static_cast<float>(steps);
-					float interpX = lastTailX + (dx * t);
-					float interpY = lastTailY + (dy * t);
+					float interpX = tailState.lastX + (dx * t);
+					float interpY = tailState.lastY + (dy * t);
 					
-					particleSystem->spawnSnakeTrail(interpX - 10.0f, interpY - 10.0f, 1, direction, lightBlue);
+					particleSystem->spawnSnakeTrail(interpX - 10.0f, interpY - 10.0f, 1, direction, color);
 				}
 			}
 			
-			lastTailX = tailX;
-			lastTailY = tailY;
-			isFirstFrame = false;
+			tailState.lastX = tailX;
+			tailState.lastY = tailY;
+			tailState.isFirstFrame = false;
 		}
 	}
 }
@@ -200,10 +200,14 @@ Input SDLGraphic::pollInput() {
 		
 		if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
-				case SDLK_UP:		return Input::Up;
-				case SDLK_DOWN:		return Input::Down;
-				case SDLK_LEFT:		return Input::Left;
-				case SDLK_RIGHT:	return Input::Right;
+				case SDLK_UP:		return Input::Up_A;
+				case SDLK_DOWN:		return Input::Down_A;
+				case SDLK_LEFT:		return Input::Left_A;
+				case SDLK_RIGHT:	return Input::Right_A;
+				case SDLK_w:		return Input::Up_B;
+				case SDLK_s:		return Input::Down_B;
+				case SDLK_a:		return Input::Left_B;
+				case SDLK_d:		return Input::Right_B;
 				case SDLK_q:		return Input::Quit;
 				case SDLK_ESCAPE:	return Input::Quit;
 				case SDLK_1:		return Input::SwitchLib1;

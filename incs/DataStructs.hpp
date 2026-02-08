@@ -21,7 +21,8 @@ enum class GameStateType {
 struct GameState {
 	int				width;
 	int				height;
-	Snake&			snake;
+	Snake&			snake_A;
+	Snake&			snake_B;
 	Food&			food;
 	bool			gameOver;
 	bool			isRunning;
