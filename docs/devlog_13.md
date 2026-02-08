@@ -611,9 +611,9 @@ Regarding bonus stuff:
 - [x] 3D graphics (and overall deep-thought graphic design across platforms)
 - [ ] Configurable settings: modularity and user customization
 - [ ] Enhance gameplay (implement one of the recolected ideas)
-- [ ] Sounds
+- [x] Sounds
 - [x] Automated tests
-- [ ] Multiplayer
+- [x] Multiplayer
 - [ ] AI opponent
 - [ ] Performance metrics and debug mode
 - [ ] Custom maps
