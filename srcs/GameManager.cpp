@@ -26,7 +26,7 @@ void GameManager::bufferInput(Input input) {
 }
 
 void GameManager::processNextInput() {
-	// Process Snake A input (Arrows)
+	// Process Snake A inpu
 	if (!inputBuffer_A.empty()) {
 		Input input = inputBuffer_A.front();
 		inputBuffer_A.pop();
@@ -49,7 +49,7 @@ void GameManager::processNextInput() {
 		}
 	}
 	
-	// Process Snake B input (WASD)
+	// Process Snake B input
 	if (!inputBuffer_B.empty()) {
 		Input input = inputBuffer_B.front();
 		inputBuffer_B.pop();
@@ -74,10 +74,11 @@ void GameManager::processNextInput() {
 }
 
 void GameManager::checkHeadFoodCollision() {
-	Vec2	head = _state->snake_A.getSegments()[0];
+	Vec2	head_A = _state->snake_A.getSegments()[0];
+	Vec2	head_B = _state->snake_B.getSegments()[0];
 	Vec2	foodPos = _state->food.getPosition();
 
-	if (head.x == foodPos.x && head.y == foodPos.y)
+	if (head_A.x == foodPos.x && head_A.y == foodPos.y)
 	{
 		/* if (_state->audio)
 			_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
@@ -89,22 +90,58 @@ void GameManager::checkHeadFoodCollision() {
 			_state->isRunning = false;
 			std::cout << "YOU WIN" << std::endl;
 		}
-	}
+	} else if (head_B.x == foodPos.x && head_B.y == foodPos.y) {
+		/* if (_state->audio)
+			_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
+			
+		_state->snake_B.grow();
+		_state->score++;  // Increment score when food is eaten
 		
+		if (!_state->food.replaceInFreeSpace(_state)) {
+			_state->isRunning = false;
+			std::cout << "YOU WIN" << std::endl;
+		}
+	}
 }
 
 bool GameManager::checkGameOverCollision()
 {
-	Vec2	head = _state->snake_A.getSegments()[0];
-	if (head.x < 0 || head.x > _state->width - 1)
+	Vec2	head_A = _state->snake_A.getSegments()[0];
+	Vec2	head_B = _state->snake_B.getSegments()[0];
+
+	if (head_A.x < 0 || head_A.x > _state->width - 1)
 		return false;
 
-	if (head.y < 0 || head.y > _state->height - 1)
+	if (head_A.y < 0 || head_A.y > _state->height - 1)
 		return false;
 
 	for (int i = 1; i < _state->snake_A.getLength(); i++)
 	{
-		if (_state->snake_A.getSegments()[i].x == head.x && _state->snake_A.getSegments()[i].y == head.y)
+		if (_state->snake_A.getSegments()[i].x == head_A.x && _state->snake_A.getSegments()[i].y == head_A.y)
+			return false;
+	}
+
+	for (int i = 0; i < _state->snake_B.getLength(); i++)
+	{
+		if (_state->snake_B.getSegments()[i].x == head_A.x && _state->snake_B.getSegments()[i].y == head_A.y)
+			return false;
+	}
+
+	if (head_B.x < 0 || head_B.x > _state->width - 1)
+		return false;
+
+	if (head_B.y < 0 || head_B.y > _state->height - 1)
+		return false;
+
+	for (int i = 1; i < _state->snake_B.getLength(); i++)
+	{
+		if (_state->snake_B.getSegments()[i].x == head_B.x && _state->snake_B.getSegments()[i].y == head_B.y)
+			return false;
+	}
+
+	for (int i = 0; i < _state->snake_A.getLength(); i++)
+	{
+		if (_state->snake_A.getSegments()[i].x == head_B.x && _state->snake_A.getSegments()[i].y == head_B.y)
 			return false;
 	}
 

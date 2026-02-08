@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 	libManager.getAudioLib()->init();
 
 	Snake snake_A(width, height);
-	Snake snake_B(width, height);
+	Snake snake_B(snake_A, width, height);
 	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
 	GameState state {
 		width, height, snake_A, snake_B, food,

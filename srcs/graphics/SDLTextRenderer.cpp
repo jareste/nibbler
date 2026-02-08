@@ -278,8 +278,8 @@ void SDLTextRenderer::drawRetryPrompt(int centerX, int centerY) {
 		"[ Q   ESC ]         QUIT" :
 		"[ Q   ESC ]            QUIT";
 	gameoverTextB = smallMode ?
-		"    /       ·········     " :
-		"    /      ···········    ";
+		"    /       ·······     " :
+		"    /       ···········    ";
 	
 	drawInstruction(centerX, centerY, offset, 
 	                gameoverTextA, gameoverTextB, 
