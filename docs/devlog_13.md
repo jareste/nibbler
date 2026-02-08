@@ -1,4 +1,4 @@
-	# Nibbler - Devlog - 13
+# Nibbler - Devlog - 13
 
 ## Table of Contents
 1. [Day Seventeen Plan](#131-day-seventeen-plan)
