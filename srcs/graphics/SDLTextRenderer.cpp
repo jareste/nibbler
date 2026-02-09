@@ -473,17 +473,17 @@ void SDLTextRenderer::drawWinner(const GameState &state, int centerX, int center
 
 	switch (res) {
 		case A_win:
-			winnerText = "Player 1 WINS!!";
+			winnerText = "Player 1 WINS";
 			textColor = lightBlue;
 			break;
 
 		case B_win:	
-			winnerText = "Player 2 WINS!!";
+			winnerText = "Player 2 WINS";
 			textColor = goldenYellow;
 			break;
 
 		case Draw:
-			winnerText = "MATCH ENDED IN DRAW!!";
+			winnerText = "MATCH ENDED IN DRAW";
 			textColor = customWhite;
 			break;
 	}

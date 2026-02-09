@@ -200,10 +200,12 @@ int main(int argc, char **argv) {
 					state.isPaused = false;
 					accumulator = 0.0;
 					gameManager.clearInputBuffer();
-					
 					state.currentState = GameStateType::Menu;
+
+					libManager.getGraphicLib()->renderMenu(state, deltaTime); // I have to go straight into menu here to avoid weird behaviours in the raylib version
+				} else {
+					libManager.getGraphicLib()->renderGameOver(state, deltaTime);
 				}
-				libManager.getGraphicLib()->renderGameOver(state, deltaTime);
 				break;
 		}
 		

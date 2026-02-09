@@ -339,6 +339,11 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	BeginMode3D(camera);
 	
 	titleHandler->drawGameover();
+	
+	if (state.config.mode != GameMode::SINGLE) {
+		textRenderer->drawWinner(state);
+	}
+	
 	textRenderer->drawRetry(state);
 
 	EndMode3D();

@@ -27,5 +27,6 @@ class RaylibTextRenderer {
 		void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint, float YRotation, float YOffset, float XOffset);
 		void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint);
 
+		void drawWinner(const GameState& state);
 		void drawRetry(const GameState& state);
 };

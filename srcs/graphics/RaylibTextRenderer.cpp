@@ -187,6 +187,69 @@ void RaylibTextRenderer::DrawText3D(Font font, const char *text, Vector3 positio
     rlPopMatrix();
 }
 
+void RaylibTextRenderer::drawWinner(const GameState& state) {
+	enum result {
+		A_win,
+		B_win,
+		Draw
+	};
+	
+	result res;
+	std::string winnerText;
+	Color textColor;
+	
+	Vector3 textPosition = { 45.0f, 34.0f, 0.0f };  // Position above the score text
+	float fontSize = 3.0f;
+	float fontSpacing = 0.20f;
+	float lineSpacing = 1.0f;
+	float conversionFactor = 0.020f;
+	
+	if (state.snake_A.isDead() && state.snake_B->isDead()) {
+		res = Draw;
+	} else if (state.snake_A.isDead()) {
+		res = B_win;
+	} else if (state.snake_B->isDead()) {
+		res = A_win;
+	} else {
+		if (state.score > state.scoreB) {
+			res = A_win;
+		} else if (state.scoreB > state.score) {
+			res = B_win;
+		} else {
+			res = Draw;
+		}
+	}
+	
+	if (state.score == 0 && state.score == state.scoreB && state.snake_A.isDead() && state.snake_B->isDead()) {
+		res = Draw;
+	}
+	
+	switch (res) {
+		case A_win:
+			winnerText = "PLAYER 1 WINS";
+			textColor = graphic.snakeALightSide;
+			break;
+		
+		case B_win:	
+			winnerText = "PLAYER 2 WINS";
+			textColor = graphic.snakeBLightSide;
+			break;
+		
+		case Draw:
+			winnerText = "MATCH ENDED IN DRAW";
+			textColor = graphic.customWhite;
+			break;
+	}
+	
+	Vector2 textSize = MeasureTextEx(customFont, winnerText.c_str(), fontSize * customFont.baseSize, fontSpacing);
+	float textWidth = textSize.x * conversionFactor;
+	
+	textPosition.x -= textWidth / 2.0f;
+	
+	DrawText3D(customFont, winnerText.c_str(), textPosition, fontSize, fontSpacing, lineSpacing, false, 
+	           textColor, 0.0f, 7.0f, 7.0f);
+}
+
 void RaylibTextRenderer::drawRetry(const GameState& state) {
 	Vector3 textPosition = { 4.0f, -2.0f, 0.0f };
 	float fontSize = 2.0f;
