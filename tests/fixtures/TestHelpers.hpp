@@ -8,18 +8,22 @@ namespace TestHelpers {
 	inline GameState createBasicGameState(int width = 20, int height = 20) {
 		static Snake snake(width, height);
 		static Food food({10, 10}, width, height);
+		static GameConfig config{GameMode::SINGLE};
 
 		return GameState {
 			width,
 			height,
 			snake,
+			nullptr,
 			food,
 			false,					// gameover
 			true,					// isRunning
 			false,					// isPaused
 			GameStateType::Playing,
 			0,						// score
-			nullptr					// audio (not needed for tests right now)
+			0,						// scoreB
+			nullptr,				// audio (not needed for tests right now)
+			config
 		};
 	}
 }
