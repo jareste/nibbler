@@ -15,15 +15,22 @@ class Snake {
 		int			_maxLength;
 		Vec2		*_segments;
 		Direction	_direction;
+		bool		_isDead = false;
 
 
 	public:
 		Snake() = delete;
 		Snake(int width, int height);
+		Snake(const Snake &otherSnake, int width, int height);	// multiplayer, second snake constructor (opposite)
+		Snake(Snake &&other) noexcept;
+		Snake &operator=(Snake &&other) noexcept;
 		Snake(const Snake &other);
 		Snake &operator=(const Snake &other);
 		
 		~Snake();
+
+		void setAsDead(bool dead);
+		bool isDead() const;
 
 		int getLength() const;
 		const Vec2 *getSegments() const;

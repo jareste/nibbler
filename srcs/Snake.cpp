@@ -53,6 +53,59 @@ Snake::Snake(int width, int height): _length(4), _maxLength((width * height) - 2
 	}
 }
 
+Snake::Snake(const Snake &otherSnake, int width, int height) : _length(otherSnake._length), _maxLength(otherSnake._maxLength) {
+	_segments = new Vec2[_maxLength];
+
+	switch (otherSnake._direction)
+	{
+		case Direction::Up:
+			_direction = Direction::Down;
+			break;
+		case Direction::Down:
+			_direction = Direction::Up;
+			break;
+		case Direction::Left:
+			_direction = Direction::Right;
+			break;
+		case Direction::Right:
+			_direction = Direction::Left;
+			break;
+	}
+
+	_segments[0].x = width - 1 - otherSnake._segments[0].x;
+	_segments[0].y = height - 1 - otherSnake._segments[0].y;
+	_segments[1].x = width - 1 - otherSnake._segments[1].x;
+	_segments[1].y = height - 1 - otherSnake._segments[1].y;
+	_segments[2].x = width - 1 - otherSnake._segments[2].x;
+	_segments[2].y = height - 1 - otherSnake._segments[2].y;
+	_segments[3].x = width - 1 - otherSnake._segments[3].x;
+	_segments[3].y = height - 1 - otherSnake._segments[3].y;
+
+	/* _direction = otherSnake._direction;
+	for (int i = 0; i < _length; ++i) {
+		_segments[i] = otherSnake._segments[i];
+	} */
+}
+
+Snake::Snake(Snake &&other) noexcept : _length(other._length), _maxLength(other._maxLength), _segments(other._segments), _direction(other._direction) {
+	other._segments = nullptr;
+}
+
+Snake &Snake::operator=(Snake &&other) noexcept {
+	if (this != &other)
+	{
+		delete[] _segments;
+		
+		this->_length = other._length;
+		this->_maxLength = other._maxLength;
+		this->_direction = other._direction;
+		this->_segments = other._segments;
+		
+		other._segments = nullptr;
+	}
+	return *this;
+}
+
 Snake::Snake(const Snake &other) : _length(other._length), _maxLength(other._maxLength) {
 	_segments = new Vec2[_maxLength];
 	_direction = other._direction;
@@ -80,6 +133,10 @@ Snake &Snake::operator=(const Snake &other) {
 Snake::~Snake() {
 	delete[] _segments;
 }
+
+void Snake::setAsDead(bool dead) { _isDead = dead; }
+
+bool Snake::isDead() const { return _isDead; }
 
 int Snake::getLength() const { return _length; }
 

@@ -12,7 +12,8 @@
 class GameManager {
 	private:
 		GameState*			_state;
-		std::queue<Input>	inputBuffer;
+		std::queue<Input>	inputBuffer_A;
+		std::queue<Input>	inputBuffer_B;
 		static const size_t	MAX_BUFFER_SIZE = 3;
 
 		using time = std::chrono::time_point<std::chrono::high_resolution_clock>;

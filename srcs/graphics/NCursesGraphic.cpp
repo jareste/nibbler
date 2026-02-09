@@ -79,18 +79,22 @@ if (has_colors()) {
 	
 	if (can_change_color()) {
 		// RGB to ncurses scale (0-1000): value = (RGB_value * 1000) / 255
-		// Also: I'm reusing some colors (CYAN, GREEN) to cover for the possibility of not being able to generate new ones
+		// Also: I'm reusing some colors (CYAN, GREEN, MAGENTA, YELLOW) to cover for the possibility of not being able to generate new ones
 		init_color(COLOR_RED, 705, 204, 227);		// Red
 		init_color(COLOR_BLUE, 275, 510, 706);		// Blue
 		init_color(COLOR_CYAN, 996, 290, 318);		// Light Red
-		init_color(COLOR_GREEN, 300, 300, 300);		// Gray for ground 
+		init_color(COLOR_GREEN, 300, 300, 300);		// Gray for ground
+		init_color(COLOR_MAGENTA, 565, 933, 565);	// Light Green (144, 238, 144)
+		init_color(COLOR_YELLOW, 1000, 843, 0);		// Golden Yellow (255, 215, 0)
 	}
 	
-	init_pair(1, COLOR_BLUE, COLOR_BLACK);    // Snake (blue on black)
+	init_pair(1, COLOR_BLUE, COLOR_BLACK);    // Snake A (blue on black)
 	init_pair(2, COLOR_CYAN, COLOR_BLACK);    // Food (light red/cyan on black)
 	init_pair(3, COLOR_BLACK, COLOR_BLACK);   // Background
 	init_pair(4, COLOR_WHITE, COLOR_BLACK);   // UI text
 	init_pair(5, COLOR_GREEN, COLOR_BLACK);   // Ground
+	init_pair(6, COLOR_MAGENTA, COLOR_BLACK); // Light Green
+	init_pair(7, COLOR_YELLOW, COLOR_BLACK);  // Golden Yellow
 	
 	bkgd(COLOR_PAIR(0));
 	clear();
@@ -232,57 +236,105 @@ void NCursesGraphic::drawTitle(int win_height, int win_width)
 	}
 }
 
-void NCursesGraphic::drawInstructions(int win_height, int win_width) {
+void NCursesGraphic::drawMode(const GameState &state, int win_height, int win_width, int anchorY) {
+	(void)win_height;
+
+	std::string modeText;
+	std::string base;
+	std::string combined;
+
+	anchorY += 1;
+	switch (state.config.mode) {
+		case GameMode::SINGLE:
+			modeText = "SINGLE";
+			base = " - MULTI - VsAI";
+			combined = modeText + base;
+
+			wattron(gameWindow, COLOR_PAIR(5));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 6, base.c_str());
+			wattroff(gameWindow, COLOR_PAIR(5));
+			
+			wattron(gameWindow, COLOR_PAIR(1));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2, modeText.c_str());
+			wattroff(gameWindow, COLOR_PAIR(1));
+
+			break;
+		
+		case GameMode::MULTI:
+			modeText = "MULTI";
+			base = "SINGLE -       - VsAI";
+			combined = base;
+
+			wattron(gameWindow, COLOR_PAIR(5));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2, base.c_str());
+			wattroff(gameWindow, COLOR_PAIR(5));
+
+			wattron(gameWindow, COLOR_PAIR(7));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 9, modeText.c_str());
+			wattroff(gameWindow, COLOR_PAIR(7));
+			break;
+	}
+}
+
+void NCursesGraphic::drawInstructions(const GameState &state, int win_height, int win_width) {
 	int anchorY = ((win_width / 2) < 42) ? win_height / 2 : (win_height / 2) + 5;
+
+	drawMode(state, win_height, win_width, anchorY);
 
 	wattron(gameWindow, COLOR_PAIR(4));
 	const char *instructions = "[ENTER]·······START";
-	int instrY = anchorY + 2;
+	int instrY = anchorY + 3;
 	mvwaddstr(gameWindow, instrY, 
 			(win_width / 2) - 10, instructions);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *instructionsDots = "·······";
-	int instrDotsY = anchorY + 2;
-	mvwaddstr(gameWindow, instrDotsY, 
+	mvwaddstr(gameWindow, instrY, 
 			(win_width / 2) - 3, instructionsDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
+
 	wattron(gameWindow, COLOR_PAIR(4));
-	
+	const char *mode = "[SPACE]········MODE";
+	int modeY = instrY + 1;
+	mvwaddstr(gameWindow, modeY, 
+			(win_width / 2) - 10, mode);
+	wattroff(gameWindow, COLOR_PAIR(4));
+	wattron(gameWindow, COLOR_PAIR(5));
+	const char *modeDots = "········";
+	mvwaddstr(gameWindow, modeY, 
+			(win_width / 2) - 3, modeDots);
+	wattroff(gameWindow, COLOR_PAIR(5));
+
+	wattron(gameWindow, COLOR_PAIR(4));	
 	const char *controls = "[↑↓←→]·········MOVE";
-	int controlsY = instrY + 1;
+	int controlsY = modeY + 1;
 	mvwaddstr(gameWindow, controlsY,
 			(win_width / 2) - 10, controls);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *controlsDots = "·········";
 	mvwaddstr(gameWindow, controlsY, 
 			(win_width / 2) - 4, controlsDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
-	wattron(gameWindow, COLOR_PAIR(4));
 
+	wattron(gameWindow, COLOR_PAIR(4));
 	const char *libs = "[1/2/3]······TRAVEL";
 	int libsY = controlsY + 1;
 	mvwaddstr(gameWindow, libsY,
 			(win_width / 2) - 10, libs);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *travelDots = "······";
 	mvwaddstr(gameWindow, libsY, 
 			(win_width / 2) - 3, travelDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
-	wattron(gameWindow, COLOR_PAIR(4));
 
+	wattron(gameWindow, COLOR_PAIR(4));
 	const char *quit = "[Q/ESC]········QUIT";
 	int quitY = libsY + 1;
 	mvwaddstr(gameWindow, quitY,
 			(win_width / 2) - 10, quit);
-	wattroff(gameWindow, COLOR_PAIR(5));
-
-	wattroff(gameWindow, COLOR_PAIR(4));
+	wattroff(gameWindow, COLOR_PAIR(5));	
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *quitDots = "········";
 	mvwaddstr(gameWindow, quitY, 
@@ -313,7 +365,7 @@ void NCursesGraphic::renderMenu(const GameState &state, float deltaTime) {
 	drawBorder();
 
 	drawTitle(win_height, win_width);
-	drawInstructions(win_height, win_width);	
+	drawInstructions(state, win_height, win_width);	
 	
 	wnoutrefresh(stdscr);
 	wnoutrefresh(gameWindow);
@@ -349,41 +401,139 @@ void NCursesGraphic::drawGameOverTitle(int win_height, int win_width)
 
 void NCursesGraphic::drawGameOverScreen(const GameState &state, int win_height, int win_width)
 {
-	(void)state;
 	int anchorY = ((win_width / 2) < 42) ? win_height / 2 : (win_height / 2) + 5;
+
+	if (state.config.mode != GameMode::SINGLE && state.snake_B) {
+		enum Result { A_win, B_win, Draw };
+		Result res = Draw;
+		
+		if (state.snake_A.isDead() && !state.snake_B->isDead())
+			res = B_win;
+		else if (!state.snake_A.isDead() && state.snake_B->isDead())
+			res = A_win;
+		else if (state.snake_A.isDead() && state.snake_B->isDead()) {
+			if (state.score > state.scoreB)
+				res = A_win;
+			else if (state.scoreB > state.score)
+				res = B_win;
+		} else
+			res = A_win;
+		
+		if (res == Draw) {
+			if (state.score > state.scoreB)
+				res = A_win;
+			else if (state.scoreB > state.score)
+				res = B_win;
+		}
+		
+		if (state.score == 0 && state.score == state.scoreB)
+			res = Draw;
+		
+		std::string winnerText;
+		int winnerColor;
+		
+		switch (res) {
+			case A_win:
+				winnerText = "PLAYER 1 WINS";
+				winnerColor = 1; // Blue
+				break;
+			case B_win:
+				winnerText = "PLAYER 2 WINS";
+				winnerColor = 7; // Yellow
+				break;
+			case Draw:
+				winnerText = "MATCH ENDED IN DRAW";
+				winnerColor = 4; // White
+				break;
+		}
+		
+		int winnerY = ((win_width / 2) < 42) ? (win_height / 2) - 6 : (win_height / 2) - 8;
+		wattron(gameWindow, COLOR_PAIR(winnerColor));
+		mvwaddstr(gameWindow, winnerY - 1, (win_width / 2) - (winnerText.length() / 2) - 1, winnerText.c_str());
+		wattroff(gameWindow, COLOR_PAIR(winnerColor));
+	}
 
 	drawGameOverTitle(win_height, win_width);
 
-	
 	int scoreY = ((win_width / 2) < 42) ? anchorY + 2.5 : anchorY + 4.5;
-	wattron(gameWindow, COLOR_PAIR(1));
-	mvwaddstr(gameWindow, scoreY, (win_width / 2) - 9, "YOU ");
-	wattroff(gameWindow, COLOR_PAIR(1));
-
-	wattron(gameWindow, COLOR_PAIR(5));
-	std::string scoreString = std::to_string(state.score);
-	std::string scoreMessage;
-	if (state.score == 1) {
-		scoreMessage = "ATE   APPLE";
-	}
-	else if (state.score == 0) {
-		scoreMessage = "ATE   APPLES";
-	}
-	else if (state.score > 1 && state.score < 9) {
-		scoreMessage = "ATE   APPLES";
+	
+	if (state.config.mode != GameMode::SINGLE && state.snake_B) {
+		// p1
+		std::string scoreStringA = std::to_string(state.score);
+		std::string appleWordA = (state.score == 1) ? "APPLE" : "APPLES";
+		
+		wattron(gameWindow, COLOR_PAIR(1)); // Blue
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 11, "PLAYER 1 ");
+		wattroff(gameWindow, COLOR_PAIR(1));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 2, "ATE ");
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		wattron(gameWindow, COLOR_PAIR(2)); // Light red/Food color
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) + 2, scoreStringA.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		std::string appleTextA = " " + appleWordA;
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) + scoreStringA.length() + 2, appleTextA.c_str());
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		// p2
+		std::string scoreStringB = std::to_string(state.scoreB);
+		std::string appleWordB = (state.scoreB == 1) ? "APPLE" : "APPLES";
+		
+		int scoreYB = scoreY + 1;
+		
+		wattron(gameWindow, COLOR_PAIR(7)); // Yellow
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 11, "PLAYER 2 ");
+		wattroff(gameWindow, COLOR_PAIR(7));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 2, "ATE ");
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		wattron(gameWindow, COLOR_PAIR(2)); // Light red/Food color
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + 2, scoreStringB.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		std::string appleTextB = " " + appleWordB;
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + scoreStringB.length() + 2, appleTextB.c_str());
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		scoreY = scoreYB; // Adjust for controls positioning
 	} else {
-		scoreMessage = "ATE    APPLES";
+		// SINGLE PLAYER MODE 
+		wattron(gameWindow, COLOR_PAIR(1));
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 9, "YOU ");
+		wattroff(gameWindow, COLOR_PAIR(1));
+
+		wattron(gameWindow, COLOR_PAIR(5));
+		std::string scoreString = std::to_string(state.score);
+		std::string scoreMessage;
+		if (state.score == 1) {
+			scoreMessage = "ATE   APPLE";
+		}
+		else if (state.score == 0) {
+			scoreMessage = "ATE   APPLES";
+		}
+		else if (state.score > 1 && state.score < 9) {
+			scoreMessage = "ATE   APPLES";
+		} else {
+			scoreMessage = "ATE    APPLES";
+		}
+
+		mvwaddstr(gameWindow, scoreY, 
+				(win_width / 2) - 5, scoreMessage.c_str());
+
+		wattroff(gameWindow, COLOR_PAIR(5));
+
+		wattron(gameWindow, COLOR_PAIR(2));
+		mvwaddstr(gameWindow, scoreY, 
+				(win_width / 2) - 1, scoreString.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
 	}
-
-	mvwaddstr(gameWindow, scoreY, 
-			(win_width / 2) - 5, scoreMessage.c_str());
-
-	wattroff(gameWindow, COLOR_PAIR(5));
-
-	wattron(gameWindow, COLOR_PAIR(2));
-	mvwaddstr(gameWindow, scoreY, 
-			(win_width / 2) - 1, scoreString.c_str());
-	wattroff(gameWindow, COLOR_PAIR(2));
 
 	// Retry instruction
 	wattron(gameWindow, COLOR_PAIR(4));
@@ -444,10 +594,14 @@ void NCursesGraphic::renderGameOver(const GameState &state, float deltaTime)
 Input NCursesGraphic::pollInput() {
 	int ch = getch();
 	switch (ch) {
-		case KEY_UP:    return Input::Up;
-		case KEY_DOWN:  return Input::Down;
-		case KEY_LEFT:  return Input::Left;
-		case KEY_RIGHT: return Input::Right;
+		case KEY_UP:    return Input::Up_A;
+		case KEY_DOWN:  return Input::Down_A;
+		case KEY_LEFT:  return Input::Left_A;
+		case KEY_RIGHT: return Input::Right_A;
+		case 'w':       return Input::Up_B;
+		case 's':       return Input::Down_B;
+		case 'a':       return Input::Left_B;
+		case 'd':       return Input::Right_B;
 		case 'q':       return Input::Quit;
 		case 'Q':       return Input::Quit;
 		case 27 :		return Input::Quit; // ESC key
@@ -513,20 +667,38 @@ void NCursesGraphic::drawBorder() {
 
 void NCursesGraphic::drawSnake(const GameState &state) {
 	wattron(gameWindow, COLOR_PAIR(1));
-	for (int i = 0; i < state.snake.getLength(); ++i) {
-		int y = state.snake.getSegments()[i].y + 4;
-		int x = (state.snake.getSegments()[i].x * 2) + 4;
+	for (int i = 0; i < state.snake_A.getLength(); ++i) {
+		int y = state.snake_A.getSegments()[i].y + 4;
+		int x = (state.snake_A.getSegments()[i].x * 2) + 4;
 		
 		if (i == 0) {
 			mvwaddstr(gameWindow, y, x, "⬢ ");
 		} else {
 			mvwaddstr(gameWindow, y, x,
-				(i == state.snake.getLength() - 1) ? "○ " :
+				(i == state.snake_A.getLength() - 1) ? "○ " :
 				(i % 2 == 0) ? "✛ " : "✲ "
 			);
 		}
 	}
 	wattroff(gameWindow, COLOR_PAIR(1));
+
+	if (state.config.mode != GameMode::SINGLE) {
+		wattron(gameWindow, COLOR_PAIR(7));
+		for (int i = 0; i < state.snake_B->getLength(); ++i) {
+			int y = state.snake_B->getSegments()[i].y + 4;
+			int x = (state.snake_B->getSegments()[i].x * 2) + 4;
+			
+			if (i == 0) {
+				mvwaddstr(gameWindow, y, x, "⬢ ");
+			} else {
+				mvwaddstr(gameWindow, y, x,
+					(i == state.snake_B->getLength() - 1) ? "○ " :
+					(i % 2 == 0) ? "✛ " : "✲ "
+				);
+			}
+		}
+		wattroff(gameWindow, COLOR_PAIR(7));
+	}
 }
 
 void NCursesGraphic::drawFood(const GameState &state) {

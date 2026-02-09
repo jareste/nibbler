@@ -35,6 +35,21 @@ bool parseArguments(int argc, char **argv)
 	return true;
 }
 
+void switchConfigMode(GameConfig &config)
+{
+	switch (config.mode)
+	{
+		// if implemented handle cycling with AI
+		case GameMode::SINGLE:
+			config.mode = GameMode::MULTI;
+			break;
+		
+		case GameMode::MULTI:
+			config.mode = GameMode::SINGLE;
+			break;
+	}
+}
+
 int main(int argc, char **argv) {
 	std::atexit(cleanupNCurses); // This might not be necessary after switching to an external, dynamically linked Ncurses, but we'll leave it just in case (legacy!)
 	
@@ -58,6 +73,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	GameConfig config { GameMode::SINGLE };
+
 	constexpr std::array<std::string_view, 3> graphicLibs = {
 		"./nibbler_ncurses.so",
 		"./nibbler_sdl.so",
@@ -66,7 +83,7 @@ int main(int argc, char **argv) {
 
 	const std::string audioLib = "./nibbler_sdl_mix.so";
 
-	int currentLib = 2;
+	int currentLib = 0;
 
 	LibraryManager libManager;
 	if (!libManager.loadGraphicLib(graphicLibs[currentLib].data()) || !libManager.loadAudioLib(audioLib.c_str()))
@@ -78,16 +95,20 @@ int main(int argc, char **argv) {
 	//init audio
 	libManager.getAudioLib()->init();
 
-	Snake snake(width, height);
+	Snake snake_A(width, height);
+	Snake snake_B(snake_A, width, height);
 	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+	
 	GameState state {
-		width, height, snake, food,
+		width, height, snake_A, &snake_B, food,
 		false,
 		true,
 		false,
 		GameStateType::Menu,
 		0,
-		libManager.getAudioLib()
+		0,
+		libManager.getAudioLib(),
+		config
 	};
 	food.replaceInFreeSpace(&state);
 
@@ -129,7 +150,8 @@ int main(int argc, char **argv) {
 				if (input == Input::Enter) {
 					state.currentState = GameStateType::Playing;
 					accumulator = 0.0;
-				}
+				} else if (input == Input::Pause)
+					switchConfigMode(state.config);
 				libManager.getGraphicLib()->renderMenu(state, deltaTime);
 				break;
 				
@@ -167,17 +189,23 @@ int main(int argc, char **argv) {
 				
 			case GameStateType::GameOver:
 				if (input == Input::Enter) {
-					snake = Snake(width, height);
+					snake_A = Snake(width, height);
+					snake_B = Snake(snake_A, width, height);
 					food = Food(Utils::getRandomVec2(width - 1, height - 1), width, height);
 					state.score = 0;
+					state.scoreB = 0;
+					state.snake_A.setAsDead(false);
+					state.snake_B->setAsDead(false);
 					state.gameOver = false;
 					state.isPaused = false;
 					accumulator = 0.0;
 					gameManager.clearInputBuffer();
-					
 					state.currentState = GameStateType::Menu;
+
+					libManager.getGraphicLib()->renderMenu(state, deltaTime); // I have to go straight into menu here to avoid weird behaviours in the raylib version
+				} else {
+					libManager.getGraphicLib()->renderGameOver(state, deltaTime);
 				}
-				libManager.getGraphicLib()->renderGameOver(state, deltaTime);
 				break;
 		}
 		

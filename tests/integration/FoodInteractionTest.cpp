@@ -8,18 +8,23 @@ class FoodInteractionTest : public ::testing::Test {
 	protected:
 		std::unique_ptr<Snake> snake;
 		std::unique_ptr<Food> food;
+		std::unique_ptr<GameConfig> config;
 		std::unique_ptr<GameState> state;
 		std::unique_ptr<GameManager> manager;
 		
 		void SetUp() override {
 			snake = std::make_unique<Snake>(20, 20);
 			food = std::make_unique<Food>(Vec2{10, 10}, 20, 20);
+			config = std::make_unique<GameConfig>(GameConfig{GameMode::SINGLE});
 			state = std::make_unique<GameState>(GameState{
 				20, 20,
-				*snake, *food,
+				*snake, nullptr,
+				*food,
 				false, true, false,
 				GameStateType::Playing,
-				0, nullptr
+				0, 0,
+				nullptr,
+				*config
 			});
 			manager = std::make_unique<GameManager>(state.get());
 		}
@@ -28,7 +33,7 @@ class FoodInteractionTest : public ::testing::Test {
 };
 
 TEST_F(FoodInteractionTest, FoodPositioning) {
-	Snake &snakeRef = state->snake;
+	Snake &snakeRef = state->snake_A;
 	Food &foodRef = state->food;
 
 	// moving the snake a bit
@@ -60,7 +65,7 @@ TEST_F(FoodInteractionTest, FoodPositioning) {
 }
 
 TEST_F(FoodInteractionTest, EatingTrigger) {
-	Snake &snakeRef = state->snake;
+	Snake &snakeRef = state->snake_A;
 
 	// Normalize direction to go upwards
 	if (snakeRef.getDirection() == Direction::Right || snakeRef.getDirection() == Direction::Left) {
@@ -82,7 +87,7 @@ TEST_F(FoodInteractionTest, EatingTrigger) {
 	EXPECT_TRUE(state->food.getPosition().x > snakeRef.getSegments()[0].x && state->food.getPosition().y < snakeRef.getSegments()[0].y);
 
 	// Move the head of the snake to collide with the food
-	int i = state->snake.getSegments()[0].y - state->food.getPosition().y;
+	int i = state->snake_A.getSegments()[0].y - state->food.getPosition().y;
 
 	while (i > 0) {
 		manager->update();
@@ -90,7 +95,7 @@ TEST_F(FoodInteractionTest, EatingTrigger) {
 	}
 
 	snakeRef.changeDirection(Direction::Right);
-	i = state->food.getPosition().x - state->snake.getSegments()[0].x;
+	i = state->food.getPosition().x - state->snake_A.getSegments()[0].x;
 
 	// midway check -> food should still be in the same position
 	EXPECT_TRUE(foodPosition.x == state->food.getPosition().x && foodPosition.y == state->food.getPosition().y);

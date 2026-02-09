@@ -8,18 +8,23 @@ class SnakeCollisionTest : public ::testing::Test {
 	protected:
 		std::unique_ptr<Snake> snake;
 		std::unique_ptr<Food> food;
+		std::unique_ptr<GameConfig> config;
 		std::unique_ptr<GameState> state;
 		std::unique_ptr<GameManager> manager;
 		
 		void SetUp() override {
 			snake = std::make_unique<Snake>(20, 20);
 			food = std::make_unique<Food>(Vec2{10, 10}, 20, 20);
+			config = std::make_unique<GameConfig>(GameConfig{GameMode::SINGLE});
 			state = std::make_unique<GameState>(GameState{
 				20, 20,
-				*snake, *food,
+				*snake, nullptr,
+				*food,
 				false, true, false,
 				GameStateType::Playing,
-				0, nullptr
+				0, 0,
+				nullptr,
+				*config
 			});
 			manager = std::make_unique<GameManager>(state.get());
 		}
@@ -28,7 +33,7 @@ class SnakeCollisionTest : public ::testing::Test {
 };
 
 TEST_F(SnakeCollisionTest, SelfCollision) {
-	Snake &snakeRef = state->snake;
+	Snake &snakeRef = state->snake_A;
 	
 	if (snakeRef.getDirection() != Direction::Right)
 		snakeRef.changeDirection(Direction::Left);
@@ -70,7 +75,7 @@ TEST_F(SnakeCollisionTest, SelfCollision) {
 }
 
 TEST_F(SnakeCollisionTest, WallCollision) {
-	Snake &snakeRef = state->snake;
+	Snake &snakeRef = state->snake_A;
 
 	// Normalize direction to go upwards
 	if (snakeRef.getDirection() == Direction::Right || snakeRef.getDirection() == Direction::Left) {

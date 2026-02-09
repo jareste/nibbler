@@ -68,17 +68,29 @@ private:
 	Color wallColor = { 147, 112, 219, 255 };				// Medium purple
 	Color wallColorFade = { 147, 112, 219, 120 };			// Faded purple (transparent)
 	
-	// Snake colors - Blue shades (matches ground blue)
+	// Snake A colors - Blue shades (matches ground blue)
 	// Light segments
-	Color snakeLightTop = { 135, 206, 250, 255 };			// Light sky blue (brightest)
-	Color snakeLightFront = { 26, 64, 96, 255 };			// Ground blue (darker)
-	Color snakeLightSide = { 70, 130, 180, 255 };			// Steel blue (lighter than front)
+	Color snakeALightTop = { 135, 206, 250, 255 };			// Light sky blue (brightest)
+	Color snakeALightFront = { 26, 64, 96, 255 };			// Ground blue (darker)
+	Color snakeALightSide = { 70, 130, 180, 255 };			// Steel blue (lighter than front)
 	
 	// Dark segments
-	Color snakeDarkTop = { 70, 130, 180, 255 };				// Steel blue
-	Color snakeDarkFront = { 18, 45, 68, 255 };				// Ground dark blue (darker)
-	Color snakeDarkSide = { 26, 64, 96, 255 };				// Ground blue (lighter than front)
-	Color snakeHidden = customBlack;
+	Color snakeADarkTop = { 70, 130, 180, 255 };			// Steel blue
+	Color snakeADarkFront = { 18, 45, 68, 255 };			// Ground dark blue (darker)
+	Color snakeADarkSide = { 26, 64, 96, 255 };				// Ground blue (lighter than front)
+	Color snakeAHidden = customBlack;
+	
+	// Snake B colors - Golden/Orange shades (more saturated for better contrast)
+	// Light segments
+	Color snakeBLightTop = { 255, 215, 0, 255 };			// Pure golden yellow (brightest)
+	Color snakeBLightFront = { 218, 112, 21, 255 };			// Peru orange (darker, more orange)
+	Color snakeBLightSide = { 255, 165, 0, 255 };			// Pure orange (lighter than front)
+	
+	// Dark segments
+	Color snakeBDarkTop = { 255, 165, 0, 255 };				// Pure orange
+	Color snakeBDarkFront = { 184, 85, 15, 255 };			// Dark orange (darker)
+	Color snakeBDarkSide = { 218, 112, 21, 255 };			// Peru orange (lighter than front)
+	Color snakeBHidden = customBlack;
 	
 	// Food colors - Red shades (based on ground red)
 	Color foodTop = { 255, 120, 120, 255 };					// Light coral red (brightest)
@@ -103,7 +115,9 @@ public:
 	void setupCamera(); 
 	void drawGroundPlane() ;
 	void drawWalls();
-	void drawSnake(const Snake* snake);
+	void drawSnake(const Snake* snake, Color hidden,
+		Color lightFront,  Color lightTop, Color lightSide,
+		Color darkFront, Color darkTop, Color darkSide);
 	void drawFood(const Food* food);
 	void drawCubeCustomFaces(Vector3 position, float width, float height, float length,
 	                         Color front, Color back, Color top, Color bottom, Color right, Color left);

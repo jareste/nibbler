@@ -191,7 +191,9 @@ void RaylibGraphic::drawWalls() {
 	}
 }
 
-void RaylibGraphic::drawSnake(const Snake* snake) {
+void RaylibGraphic::drawSnake(const Snake* snake, Color hidden,
+	Color lightFront,  Color lightTop, Color lightSide,
+	Color darkFront, Color darkTop, Color darkSide) {
 	float yPos = cubeSize;
 	
 	// Calculate offset to match grid centering
@@ -214,10 +216,10 @@ void RaylibGraphic::drawSnake(const Snake* snake) {
 		// Checkerboard pattern for all segments
 		if (i % 2 == 0) {
 			drawCubeCustomFaces(position, size, size, size,
-			                    snakeLightFront, snakeHidden, snakeLightTop, snakeHidden, snakeLightSide, snakeHidden);
+								lightFront, hidden, lightTop, hidden, lightSide, hidden);
 		} else {
 			drawCubeCustomFaces(position, size, size, size,
-			                    snakeDarkFront, snakeHidden, snakeDarkTop, snakeHidden, snakeDarkSide, snakeHidden);
+								darkFront, hidden, darkTop, hidden, darkSide, hidden);
 		}
 	}
 }
@@ -268,7 +270,9 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	
 	drawGroundPlane();
 	//drawWalls();
-	drawSnake(&state.snake);
+	drawSnake(&state.snake_A, snakeAHidden, snakeALightFront, snakeALightTop, snakeALightSide, snakeADarkFront, snakeADarkTop, snakeADarkSide);
+	if (state.config.mode != GameMode::SINGLE)
+		drawSnake(state.snake_B, snakeBHidden, snakeBLightFront, snakeBLightTop, snakeBLightSide, snakeBDarkFront, snakeBDarkTop, snakeBDarkSide);
 	drawFood(&state.food);
 
 	// DEBUG
@@ -311,7 +315,7 @@ void RaylibGraphic::renderMenu(const GameState& state, float deltaTime) {
 	BeginMode3D(camera);
 	
 	titleHandler->drawTitle();
-	textRenderer->drawInstructions();
+	textRenderer->drawInstructions(state);
 
 	EndMode3D();
 
@@ -335,6 +339,11 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	BeginMode3D(camera);
 	
 	titleHandler->drawGameover();
+	
+	if (state.config.mode != GameMode::SINGLE) {
+		textRenderer->drawWinner(state);
+	}
+	
 	textRenderer->drawRetry(state);
 
 	EndMode3D();
@@ -345,10 +354,14 @@ void RaylibGraphic::renderGameOver(const GameState& state, float deltaTime) {
 }
 
 Input RaylibGraphic::pollInput() {
-	if (IsKeyPressed(KEY_UP))		return Input::Up;
-	if (IsKeyPressed(KEY_DOWN))		return Input::Down;
-	if (IsKeyPressed(KEY_LEFT))		return Input::Left;
-	if (IsKeyPressed(KEY_RIGHT))	return Input::Right;
+	if (IsKeyPressed(KEY_UP))		return Input::Up_A;
+	if (IsKeyPressed(KEY_DOWN))		return Input::Down_A;
+	if (IsKeyPressed(KEY_LEFT))		return Input::Left_A;
+	if (IsKeyPressed(KEY_RIGHT))	return Input::Right_A;
+	if (IsKeyPressed(KEY_W))		return Input::Up_B;
+	if (IsKeyPressed(KEY_S))		return Input::Down_B;
+	if (IsKeyPressed(KEY_A))		return Input::Left_B;
+	if (IsKeyPressed(KEY_D))		return Input::Right_B;
 	if (IsKeyPressed(KEY_Q))		return Input::Quit;
 	if (IsKeyPressed(KEY_ESCAPE))	return Input::Quit;
 	if (IsKeyPressed(KEY_ONE))		return Input::SwitchLib1;

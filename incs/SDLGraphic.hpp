@@ -22,6 +22,12 @@ struct BorderLine {
 	BorderLine() : progress(0.0f), age(0.0f) {}
 };
 
+struct SnakeTailState {
+	float lastX = -1.0f;
+	float lastY = -1.0f;
+	bool isFirstFrame = true;
+};
+
 class SDLGraphic : public IGraphic {
 	private:
 		SDL_Window*										window;
@@ -42,15 +48,15 @@ class SDLGraphic : public IGraphic {
 		float											spawnInterval;
 		float											animationSpeed;
 		bool											enableTunnelEffect;
+		bool											smallMode;
 
 		// This is needed for explosion particle spawning
 		int												lastFoodX;
 		int												lastFoodY;
 		
 		// Snake trail tracking for interpolation -> the lerping of the trail particles, so that they don't look BAD
-		float											lastTailX;
-		float											lastTailY;
-		bool											isFirstFrame;
+		SnakeTailState										snakeATail;
+		SnakeTailState										snakeBTail;
 
 		// Colors
 		static constexpr SDL_Color customWhite{255, 248, 227, 255};	// Off-white
@@ -62,6 +68,9 @@ class SDLGraphic : public IGraphic {
 
 		static constexpr SDL_Color lightBlue{70, 130, 180, 255};
 		//static constexpr SDL_Color darkBlue{18, 45, 68, 255};
+
+		static constexpr SDL_Color lightGreen{144, 238, 144, 255};	// Light green
+		static constexpr SDL_Color goldenYellow{255, 215, 0, 255};	// Golden yellow
 		
 		// Helper function to set render color from SDL_Color
 		void setRenderColor(SDL_Color color, bool customAlpha = false, Uint8 alphaValue = 255);
@@ -72,7 +81,8 @@ class SDLGraphic : public IGraphic {
 		float easeInQuad(float t);
 
 		// Drawing functions
-		void drawSnake(const GameState &state);
+		//void drawSnake(const GameState &state);
+		void drawSnake(const Snake &snake, SnakeTailState &tailState, const SDL_Color &color);
 		void drawFood(const GameState &state);
 		void drawBorder(int thickness);	public:
 	

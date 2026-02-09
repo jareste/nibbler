@@ -35,7 +35,8 @@ private:
 	// Drawing functions
 	void drawStartScreen(int win_height, int win_width);
 	void drawTitle(int win_height, int win_width);
-	void drawInstructions(int win_height, int win_width);
+	void drawInstructions(const GameState &state,int win_height, int win_width);
+	void drawMode(const GameState &state,int win_height, int win_width, int anchorY);
 	void drawGameOverScreen(const GameState &state, int win_height, int win_width);
 	void drawGameOverTitle(int win_height, int win_width);
 	void drawGround();

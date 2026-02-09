@@ -18,15 +18,28 @@ enum class GameStateType {
     GameOver
 };
 
+enum class GameMode {
+	SINGLE,
+	MULTI,
+	//AI
+};
+
+struct GameConfig {
+	GameMode	mode;
+};
+
 struct GameState {
 	int				width;
 	int				height;
-	Snake&			snake;
+	Snake&			snake_A;
+	Snake*			snake_B; // this needs to be a pointer because there is no snake_B in SINGLE player
 	Food&			food;
 	bool			gameOver;
 	bool			isRunning;
 	bool			isPaused;
 	GameStateType	currentState;
-	int				score;
+	int				score;		// for single player or player A in multiplayer
+	int				scoreB;		// for player B in multiplayer
 	IAudio*			audio;
+	GameConfig&		config;
 };
