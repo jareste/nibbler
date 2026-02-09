@@ -35,6 +35,21 @@ bool parseArguments(int argc, char **argv)
 	return true;
 }
 
+void switchConfigMode(GameConfig &config)
+{
+	switch (config.mode)
+	{
+		// if implemented handle cycling with AI
+		case GameMode::SINGLE:
+			config.mode = GameMode::MULTI;
+			break;
+		
+		case GameMode::MULTI:
+			config.mode = GameMode::SINGLE;
+			break;
+	}
+}
+
 int main(int argc, char **argv) {
 	std::atexit(cleanupNCurses); // This might not be necessary after switching to an external, dynamically linked Ncurses, but we'll leave it just in case (legacy!)
 	
@@ -57,6 +72,8 @@ int main(int argc, char **argv) {
 		std::cerr << "Minimal arena width and height values are 16 units! Try running again with those or higher values!" << std::endl;
 		return 1;
 	}
+
+	GameConfig config { GameMode::SINGLE };
 
 	constexpr std::array<std::string_view, 3> graphicLibs = {
 		"./nibbler_ncurses.so",
@@ -81,14 +98,16 @@ int main(int argc, char **argv) {
 	Snake snake_A(width, height);
 	Snake snake_B(snake_A, width, height);
 	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+	
 	GameState state {
-		width, height, snake_A, snake_B, food,
+		width, height, snake_A, &snake_B, food,
 		false,
 		true,
 		false,
 		GameStateType::Menu,
 		0,
-		libManager.getAudioLib()
+		libManager.getAudioLib(),
+		config
 	};
 	food.replaceInFreeSpace(&state);
 
@@ -130,7 +149,8 @@ int main(int argc, char **argv) {
 				if (input == Input::Enter) {
 					state.currentState = GameStateType::Playing;
 					accumulator = 0.0;
-				}
+				} else if (input == Input::Pause)
+					switchConfigMode(state.config);
 				libManager.getGraphicLib()->renderMenu(state, deltaTime);
 				break;
 				

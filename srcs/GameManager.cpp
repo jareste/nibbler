@@ -5,7 +5,8 @@ GameManager::GameManager(GameState *state) : _state(state) {}
 void GameManager::update()  {
 	processNextInput();
 	_state->snake_A.move();
-	_state->snake_B.move();
+	if (_state->config.mode != GameMode::SINGLE && _state->snake_B)
+		_state->snake_B->move();
 	_state->isRunning = checkGameOverCollision();
 	checkHeadFoodCollision();
 }
@@ -56,16 +57,24 @@ void GameManager::processNextInput() {
 		
 		switch (input) {
 			case Input::Up_B:
-				_state->snake_B.changeDirection(Direction::Up);
+				if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+					_state->snake_B->changeDirection(Direction::Up);
+				}
 				break;
 			case Input::Down_B:
-				_state->snake_B.changeDirection(Direction::Down);
+				if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+					_state->snake_B->changeDirection(Direction::Down);
+				}
 				break;
 			case Input::Left_B:
-				_state->snake_B.changeDirection(Direction::Left);
+				if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+					_state->snake_B->changeDirection(Direction::Left);
+				}
 				break;
 			case Input::Right_B:
-				_state->snake_B.changeDirection(Direction::Right);
+				if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+					_state->snake_B->changeDirection(Direction::Right);
+				}
 				break;
 			default:
 				break;
@@ -75,7 +84,7 @@ void GameManager::processNextInput() {
 
 void GameManager::checkHeadFoodCollision() {
 	Vec2	head_A = _state->snake_A.getSegments()[0];
-	Vec2	head_B = _state->snake_B.getSegments()[0];
+	//
 	Vec2	foodPos = _state->food.getPosition();
 
 	if (head_A.x == foodPos.x && head_A.y == foodPos.y)
@@ -90,16 +99,22 @@ void GameManager::checkHeadFoodCollision() {
 			_state->isRunning = false;
 			std::cout << "YOU WIN" << std::endl;
 		}
-	} else if (head_B.x == foodPos.x && head_B.y == foodPos.y) {
-		/* if (_state->audio)
-			_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
+	}
+
+	if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+		Vec2	head_B = _state->snake_B->getSegments()[0];
+
+		if (head_B.x == foodPos.x && head_B.y == foodPos.y) {
+			/* if (_state->audio)
+				_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
+				
+			_state->snake_B->grow();
+			_state->score++;  // Increment score when food is eaten
 			
-		_state->snake_B.grow();
-		_state->score++;  // Increment score when food is eaten
-		
-		if (!_state->food.replaceInFreeSpace(_state)) {
-			_state->isRunning = false;
-			std::cout << "YOU WIN" << std::endl;
+			if (!_state->food.replaceInFreeSpace(_state)) {
+				_state->isRunning = false;
+				std::cout << "YOU WIN" << std::endl;
+			}
 		}
 	}
 }
@@ -107,7 +122,7 @@ void GameManager::checkHeadFoodCollision() {
 bool GameManager::checkGameOverCollision()
 {
 	Vec2	head_A = _state->snake_A.getSegments()[0];
-	Vec2	head_B = _state->snake_B.getSegments()[0];
+	//
 
 	if (head_A.x < 0 || head_A.x > _state->width - 1)
 		return false;
@@ -121,29 +136,35 @@ bool GameManager::checkGameOverCollision()
 			return false;
 	}
 
-	for (int i = 0; i < _state->snake_B.getLength(); i++)
-	{
-		if (_state->snake_B.getSegments()[i].x == head_A.x && _state->snake_B.getSegments()[i].y == head_A.y)
+	if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
+		Vec2	head_B = _state->snake_B->getSegments()[0];
+
+		for (int i = 0; i < _state->snake_B->getLength(); i++)
+		{
+			if (_state->snake_B->getSegments()[i].x == head_A.x && _state->snake_B->getSegments()[i].y == head_A.y)
+				return false;
+		}
+
+		if (head_B.x < 0 || head_B.x > _state->width - 1)
 			return false;
+
+		if (head_B.y < 0 || head_B.y > _state->height - 1)
+			return false;
+
+		for (int i = 1; i < _state->snake_B->getLength(); i++)
+		{
+			if (_state->snake_B->getSegments()[i].x == head_B.x && _state->snake_B->getSegments()[i].y == head_B.y)
+				return false;
+		}
+
+		for (int i = 0; i < _state->snake_A.getLength(); i++)
+		{
+			if (_state->snake_A.getSegments()[i].x == head_B.x && _state->snake_A.getSegments()[i].y == head_B.y)
+				return false;
+		}
 	}
 
-	if (head_B.x < 0 || head_B.x > _state->width - 1)
-		return false;
-
-	if (head_B.y < 0 || head_B.y > _state->height - 1)
-		return false;
-
-	for (int i = 1; i < _state->snake_B.getLength(); i++)
-	{
-		if (_state->snake_B.getSegments()[i].x == head_B.x && _state->snake_B.getSegments()[i].y == head_B.y)
-			return false;
-	}
-
-	for (int i = 0; i < _state->snake_A.getLength(); i++)
-	{
-		if (_state->snake_A.getSegments()[i].x == head_B.x && _state->snake_A.getSegments()[i].y == head_B.y)
-			return false;
-	}
+	
 
 	return true;
 }

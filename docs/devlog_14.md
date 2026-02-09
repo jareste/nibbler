@@ -423,4 +423,12 @@ Actually, wait, no, I lied. One more thing needs to be registered: **the compile
 
 Okay, now I'm done for the day. Sunday, 20:00, goodbye day 18...
 
-...and hello, monday, day 19, 9:00. Let's continue with the multiplayer implementation.
+...and hello, monday, day 19, 9:00. Let's continue with the multiplayer implementation. Before makinng any library port, I'm going to fully flesh the halfway there `SDL` implementation. Some things that are pending:
+- Fine tune collisions between snakes and their consequences
+    - What happens if one rams into the other? Who loses?
+    - What happens when a snake dies? Does the other one continue?
+    - Is the multiplayer going to be just a competition, or a cooperative? Does that affect stuff related to the last point?
+- Menu tweaks
+    - Ability (and visualization) to select single and multiplayer at START
+    - Clearly show the relation between Players, Colors and Controls
+    - Expand result display in GAMEOVER to home the multiplayer mode

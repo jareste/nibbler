@@ -105,16 +105,51 @@ void SDLTextRenderer::drawInstruction(int centerX, int centerY, int& offset,
 	textColor = customGray;
 	drawText(dotText, centerX, centerY, offset, currentFont, textColor, true);
 
-	offset += (smallMode ? 40 : 90);  // instructions line offset
+	offset += (smallMode ? 40 : 60);  // instructions line offset
 }
 
-void SDLTextRenderer::drawInstructions(int centerX, int centerY) {
+void SDLTextRenderer::drawMode(const GameState &state, int centerX, int centerY, int& offset, bool smallMode, TTF_Font* currentFont) {
+	if (!initialized)
+		return;
+
+	std::string stateA;
+	std::string stateB;
+	SDL_Color textColor;
+
+	switch (state.config.mode) {
+		case GameMode::SINGLE:
+			stateA = "SINGLE               ";
+			stateB = "       - MULTI - VsAI";
+			textColor = lightBlue;
+			break;
+
+		case GameMode::MULTI:
+			stateA = "         MULTI       ";
+			stateB = "SINGLE -       - VsAI";
+			textColor = goldenYellow;
+			break;
+	}
+	drawText(stateA, centerX, centerY, offset, currentFont, textColor, true);
+	textColor = customGray;
+	drawText(stateB, centerX, centerY, offset, currentFont, textColor, true);
+
+	offset += (smallMode ? 40 : 60);  // instructions line offset
+}
+
+void SDLTextRenderer::drawInstructions(const GameState &state, int centerX, int centerY) {
 	if (!initialized)
 		return;
 
 	bool smallMode = (windowWidth / 2) < 900;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int offset = smallMode ? square * 3 : square * 7;
+	int offset = smallMode ? square * 2 : square * 6;
+
+
+	/* std::string modeTextA = "SINGLE             ";
+	std::string modeTextB = "       - MULTI - AI"; */
+	drawMode(state, centerX, centerY, offset, smallMode, currentFont);
+
+	offset += (smallMode ? 40 : 60);
 	
 	// Enter instruction
 	std::string instructionTextA = smallMode ?
@@ -123,6 +158,17 @@ void SDLTextRenderer::drawInstructions(int centerX, int centerY) {
 	std::string instructionTextB = smallMode ?
 		"         ··········     " :
 		"         ············     ";
+	drawInstruction(centerX, centerY, offset, 
+	                instructionTextA, instructionTextB, 
+	                smallMode, currentFont);
+	
+	// Mode instruction
+	instructionTextA = smallMode ?
+		"[ SPACE ]           MODE" :
+		"[ SPACE ]              MODE";
+	instructionTextB = smallMode ?
+		"          ··········    " :
+		"          ·············    ";
 	drawInstruction(centerX, centerY, offset, 
 	                instructionTextA, instructionTextB, 
 	                smallMode, currentFont);
@@ -174,7 +220,7 @@ void SDLTextRenderer::drawScore(const GameState& state, int centerX, int centerY
 	
 	int wordSpacing = 10;
 	
-	SDL_Surface* youSurface = TTF_RenderUTF8_Blended(currentFont, "YOU", lightBlue);
+	SDL_Surface* youSurface = TTF_RenderUTF8_Blended(currentFont, "PLAYER 1", lightBlue);
 	SDL_Surface* ateSurface = TTF_RenderUTF8_Blended(currentFont, "ATE", customWhite);
 	SDL_Surface* scoreSurface = TTF_RenderUTF8_Blended(currentFont, scoreNum.c_str(), lightRed);
 	SDL_Surface* appleSurface = TTF_RenderUTF8_Blended(currentFont, appleWord.c_str(), customWhite);

@@ -93,7 +93,8 @@ void SDLGraphic::render(const GameState& state, float deltaTime) {
 	particleSystem->render();
 	
 	drawSnake(state.snake_A, snakeATail, lightBlue);
-	drawSnake(state.snake_B, snakeBTail, goldenYellow);
+	if (state.config.mode != GameMode::SINGLE && state.snake_B)
+		drawSnake(*(state.snake_B), snakeBTail, goldenYellow);
 	drawFood(state);
 
 	drawBorder(cellSize);
@@ -314,8 +315,6 @@ void SDLGraphic::renderTunnelEffect() {
 }
 
 void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
-	(void)state;
-	
 	windowWidth = (gridWidth * cellSize) + (2 * borderOffset);
 	windowHeight = (gridHeight * cellSize) + (2 * borderOffset);
 
@@ -345,7 +344,7 @@ void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
 	int centerY = windowHeight / 2;
 
 	titleHandler->renderTitle(centerX, centerY, square, sep, customWhite, lightBlue, lightRed);
-	textRenderer->drawInstructions(centerX, centerY);
+	textRenderer->drawInstructions(state, centerX, centerY);
 	
 	SDL_RenderPresent(renderer);
 }
