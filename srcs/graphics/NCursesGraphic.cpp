@@ -401,41 +401,139 @@ void NCursesGraphic::drawGameOverTitle(int win_height, int win_width)
 
 void NCursesGraphic::drawGameOverScreen(const GameState &state, int win_height, int win_width)
 {
-	(void)state;
 	int anchorY = ((win_width / 2) < 42) ? win_height / 2 : (win_height / 2) + 5;
+
+	if (state.config.mode != GameMode::SINGLE && state.snake_B) {
+		enum Result { A_win, B_win, Draw };
+		Result res = Draw;
+		
+		if (state.snake_A.isDead() && !state.snake_B->isDead())
+			res = B_win;
+		else if (!state.snake_A.isDead() && state.snake_B->isDead())
+			res = A_win;
+		else if (state.snake_A.isDead() && state.snake_B->isDead()) {
+			if (state.score > state.scoreB)
+				res = A_win;
+			else if (state.scoreB > state.score)
+				res = B_win;
+		} else
+			res = A_win;
+		
+		if (res == Draw) {
+			if (state.score > state.scoreB)
+				res = A_win;
+			else if (state.scoreB > state.score)
+				res = B_win;
+		}
+		
+		if (state.score == 0 && state.score == state.scoreB)
+			res = Draw;
+		
+		std::string winnerText;
+		int winnerColor;
+		
+		switch (res) {
+			case A_win:
+				winnerText = "PLAYER 1 WINS";
+				winnerColor = 1; // Blue
+				break;
+			case B_win:
+				winnerText = "PLAYER 2 WINS";
+				winnerColor = 7; // Yellow
+				break;
+			case Draw:
+				winnerText = "MATCH ENDED IN DRAW";
+				winnerColor = 4; // White
+				break;
+		}
+		
+		int winnerY = ((win_width / 2) < 42) ? (win_height / 2) - 6 : (win_height / 2) - 8;
+		wattron(gameWindow, COLOR_PAIR(winnerColor));
+		mvwaddstr(gameWindow, winnerY - 1, (win_width / 2) - (winnerText.length() / 2) - 1, winnerText.c_str());
+		wattroff(gameWindow, COLOR_PAIR(winnerColor));
+	}
 
 	drawGameOverTitle(win_height, win_width);
 
-	
 	int scoreY = ((win_width / 2) < 42) ? anchorY + 2.5 : anchorY + 4.5;
-	wattron(gameWindow, COLOR_PAIR(1));
-	mvwaddstr(gameWindow, scoreY, (win_width / 2) - 9, "YOU ");
-	wattroff(gameWindow, COLOR_PAIR(1));
-
-	wattron(gameWindow, COLOR_PAIR(5));
-	std::string scoreString = std::to_string(state.score);
-	std::string scoreMessage;
-	if (state.score == 1) {
-		scoreMessage = "ATE   APPLE";
-	}
-	else if (state.score == 0) {
-		scoreMessage = "ATE   APPLES";
-	}
-	else if (state.score > 1 && state.score < 9) {
-		scoreMessage = "ATE   APPLES";
+	
+	if (state.config.mode != GameMode::SINGLE && state.snake_B) {
+		// p1
+		std::string scoreStringA = std::to_string(state.score);
+		std::string appleWordA = (state.score == 1) ? "APPLE" : "APPLES";
+		
+		wattron(gameWindow, COLOR_PAIR(1)); // Blue
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 11, "PLAYER 1 ");
+		wattroff(gameWindow, COLOR_PAIR(1));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 2, "ATE ");
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		wattron(gameWindow, COLOR_PAIR(2)); // Light red/Food color
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) + 2, scoreStringA.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		std::string appleTextA = " " + appleWordA;
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) + scoreStringA.length() + 2, appleTextA.c_str());
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		// p2
+		std::string scoreStringB = std::to_string(state.scoreB);
+		std::string appleWordB = (state.scoreB == 1) ? "APPLE" : "APPLES";
+		
+		int scoreYB = scoreY + 1;
+		
+		wattron(gameWindow, COLOR_PAIR(7)); // Yellow
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 11, "PLAYER 2 ");
+		wattroff(gameWindow, COLOR_PAIR(7));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 2, "ATE ");
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		wattron(gameWindow, COLOR_PAIR(2)); // Light red/Food color
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + 2, scoreStringB.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
+		
+		wattron(gameWindow, COLOR_PAIR(4)); // White
+		std::string appleTextB = " " + appleWordB;
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + scoreStringB.length() + 2, appleTextB.c_str());
+		wattroff(gameWindow, COLOR_PAIR(4));
+		
+		scoreY = scoreYB; // Adjust for controls positioning
 	} else {
-		scoreMessage = "ATE    APPLES";
+		// SINGLE PLAYER MODE 
+		wattron(gameWindow, COLOR_PAIR(1));
+		mvwaddstr(gameWindow, scoreY, (win_width / 2) - 9, "YOU ");
+		wattroff(gameWindow, COLOR_PAIR(1));
+
+		wattron(gameWindow, COLOR_PAIR(5));
+		std::string scoreString = std::to_string(state.score);
+		std::string scoreMessage;
+		if (state.score == 1) {
+			scoreMessage = "ATE   APPLE";
+		}
+		else if (state.score == 0) {
+			scoreMessage = "ATE   APPLES";
+		}
+		else if (state.score > 1 && state.score < 9) {
+			scoreMessage = "ATE   APPLES";
+		} else {
+			scoreMessage = "ATE    APPLES";
+		}
+
+		mvwaddstr(gameWindow, scoreY, 
+				(win_width / 2) - 5, scoreMessage.c_str());
+
+		wattroff(gameWindow, COLOR_PAIR(5));
+
+		wattron(gameWindow, COLOR_PAIR(2));
+		mvwaddstr(gameWindow, scoreY, 
+				(win_width / 2) - 1, scoreString.c_str());
+		wattroff(gameWindow, COLOR_PAIR(2));
 	}
-
-	mvwaddstr(gameWindow, scoreY, 
-			(win_width / 2) - 5, scoreMessage.c_str());
-
-	wattroff(gameWindow, COLOR_PAIR(5));
-
-	wattron(gameWindow, COLOR_PAIR(2));
-	mvwaddstr(gameWindow, scoreY, 
-			(win_width / 2) - 1, scoreString.c_str());
-	wattroff(gameWindow, COLOR_PAIR(2));
 
 	// Retry instruction
 	wattron(gameWindow, COLOR_PAIR(4));
