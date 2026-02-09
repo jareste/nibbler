@@ -451,7 +451,7 @@ void SDLTextRenderer::drawWinner(const GameState &state, int centerX, int center
 	std::string winnerText;
 	SDL_Color textColor;
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
-	int offset = -400;
+	int offset = smallMode? - 250 : -400;
 
 	if (state.snake_A.isDead()) {
 		if (state.snake_B->isDead()) {

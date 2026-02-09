@@ -19,7 +19,7 @@ public:
 	~SDLTitleHandler() = default;
 
 	void renderTitle(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color blue, SDL_Color red);
-	void renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white);
+	void renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color gray);
 
 	void drawGameOver();
 };

@@ -80,16 +80,16 @@ private:
 	Color snakeADarkSide = { 26, 64, 96, 255 };				// Ground blue (lighter than front)
 	Color snakeAHidden = customBlack;
 	
-	// Snake B colors - Green/Yellow shades
+	// Snake B colors - Golden/Orange shades (more saturated for better contrast)
 	// Light segments
-	Color snakeBLightTop = { 255, 255, 153, 255 };			// Light yellow (brightest)
-	Color snakeBLightFront = { 184, 134, 11, 255 };			// Dark golden rod (darker)
-	Color snakeBLightSide = { 255, 215, 0, 255 };			// Golden yellow (lighter than front)
+	Color snakeBLightTop = { 255, 215, 0, 255 };			// Pure golden yellow (brightest)
+	Color snakeBLightFront = { 218, 112, 21, 255 };			// Peru orange (darker, more orange)
+	Color snakeBLightSide = { 255, 165, 0, 255 };			// Pure orange (lighter than front)
 	
 	// Dark segments
-	Color snakeBDarkTop = { 255, 215, 0, 255 };				// Golden yellow
-	Color snakeBDarkFront = { 218, 165, 32, 255 };			// Goldenrod (darker)
-	Color snakeBDarkSide = { 184, 134, 11, 255 };			// Dark golden rod (lighter than front)
+	Color snakeBDarkTop = { 255, 165, 0, 255 };				// Pure orange
+	Color snakeBDarkFront = { 184, 85, 15, 255 };			// Dark orange (darker)
+	Color snakeBDarkSide = { 218, 112, 21, 255 };			// Peru orange (lighter than front)
 	Color snakeBHidden = customBlack;
 	
 	// Food colors - Red shades (based on ground red)
@@ -115,7 +115,9 @@ public:
 	void setupCamera(); 
 	void drawGroundPlane() ;
 	void drawWalls();
-	void drawSnake(const Snake* snake);
+	void drawSnake(const Snake* snake, Color hidden,
+		Color lightFront,  Color lightTop, Color lightSide,
+		Color darkFront, Color darkTop, Color darkSide);
 	void drawFood(const Food* food);
 	void drawCubeCustomFaces(Vector3 position, float width, float height, float length,
 	                         Color front, Color back, Color top, Color bottom, Color right, Color left);

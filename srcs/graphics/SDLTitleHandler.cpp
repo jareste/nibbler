@@ -69,7 +69,7 @@ void SDLTitleHandler::renderTitle(int centerX, int centerY, int square, int sep,
 	drawRects(bblerRects, white);
 }
 
-void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white) {
+void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int sep, SDL_Color white, SDL_Color gray) {
 	int totalWidth = (26 * square) + (3 * sep);
 	int startX = centerX - (totalWidth / 2);
 	centerY = centerY - (square * 3.5);
@@ -132,7 +132,7 @@ void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int s
 		{startX + (square * 4), centerY - (square * 2), square, square * 4},
 		{startX, centerY + (square), square * 4, square},
 	};
-	drawRects(oRects, white);
+	drawRects(oRects, gray);
 
 	// v
 	std::vector<SDL_Rect> vRects = {
@@ -141,7 +141,7 @@ void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int s
 		{startX + (square * 8) + (sep), centerY, square, square},
 		{startX + (square * 9) + (sep), centerY - (square * 3), square, square  * 4},
 	};
-	drawRects(vRects, white);
+	drawRects(vRects, gray);
 
 	// e (reuse vector)
 	eRects.clear();
@@ -152,7 +152,7 @@ void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int s
 		{startX + (square * 11) + (sep * 2), centerY - (square), square * 3, square},
 		{startX + (square * 11) + (sep * 2), centerY + (square), square * 4, square},
 	};
-	drawRects(eRects, white);
+	drawRects(eRects, gray);
 
 	// r
 	std::vector<SDL_Rect> rRects = {
@@ -160,5 +160,5 @@ void SDLTitleHandler::renderGameOver(int centerX, int centerY, int square, int s
 		{startX + (square * 15) + (sep * 3), centerY - (square * 3), square * 5, square},
 		{startX + (square * 19) + (sep * 3), centerY - (square * 2), square, square},
 	};
-	drawRects(rRects, white);
+	drawRects(rRects, gray);
 }

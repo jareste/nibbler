@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
 	const std::string audioLib = "./nibbler_sdl_mix.so";
 
-	int currentLib = 1;
+	int currentLib = 2;
 
 	LibraryManager libManager;
 	if (!libManager.loadGraphicLib(graphicLibs[currentLib].data()) || !libManager.loadAudioLib(audioLib.c_str()))

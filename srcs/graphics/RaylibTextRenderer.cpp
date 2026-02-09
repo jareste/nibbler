@@ -35,14 +35,40 @@ void RaylibTextRenderer::loadFont() {
 	delete[] codepoints;
 }
 
-void RaylibTextRenderer::drawInstructions() {
+void RaylibTextRenderer::drawModes(const GameState &state) {
 	Vector3 textPosition = { 0.0f, 0.0f, 0.0f };
 	float fontSize = 2.0f;
 	float fontSpacing = 0.20f;
 	float lineSpacing = 1.0f;
+
+	switch (state.config.mode) {
+		case GameMode::SINGLE:
+			DrawText3D(customFont, "SINGLE               ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeALightSide, 90.0f, 7.0f, 5.0f);
+			DrawText3D(customFont, "       - MULTI - VsAI", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 5.0f);
+			break;
+
+		case GameMode::MULTI:
+			DrawText3D(customFont, "         MULTI       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeBLightSide, 90.0f, 7.0f, 5.0f);
+			DrawText3D(customFont, "SINGLE -       - VsAI", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 5.0f);
+			break;
+	}	
+}
+
+void RaylibTextRenderer::drawInstructions(const GameState &state) {
+	Vector3 textPosition = { 0.0f, 0.0f, 0.0f };
+	float fontSize = 2.0f;
+	float fontSpacing = 0.20f;
+	float lineSpacing = 1.0f;
+
+	drawModes(state);
 	
+	textPosition.x += fontSize + lineSpacing + 1.0f;
 	DrawText3D(customFont, "[ ENTER ]              START", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
 	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
+
+	textPosition.x += fontSize + lineSpacing + 1.0f;
+	DrawText3D(customFont, "[ SPACE ]               MODE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);
+	DrawText3D(customFont, "          ·············     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 7.0f);
 	
 	textPosition.x += fontSize + lineSpacing + 1.0f;
 	DrawText3D(customFont, "[ ↑ ↓ ← → ]             MOVE", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 90.0f, 7.0f, 7.0f);

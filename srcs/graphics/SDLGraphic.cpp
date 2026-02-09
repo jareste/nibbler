@@ -324,7 +324,7 @@ void SDLGraphic::renderMenu(const GameState& state, float deltaTime) {
 
 	static int frameCounter = 0;
 	if (frameCounter % 111 == 0) {
-		particleSystem->spawnSnakeTrail(windowWidth / 2 + (square * 17.2), windowHeight / 2 + (square * 3.2), 1, 0, lightBlue);  // Direction: 0° (moving right), trail goes left
+		particleSystem->spawnSnakeTrail(windowWidth / 2 + (square * 17.2), windowHeight / 2 + (square * 3.2), 1, 0, lightBlue);
 	}
 	frameCounter++;
 
@@ -378,7 +378,7 @@ void SDLGraphic::renderGameOver(const GameState& state, float deltaTime) {
 		textRenderer->drawWinner(state, centerX, centerY);	
 	}
 
-	titleHandler->renderGameOver(centerX, centerY, square, sep, customWhite);
+	titleHandler->renderGameOver(centerX, centerY, square, sep, customWhite, customWhite);
 	textRenderer->drawScore(state, centerX, centerY);
 	textRenderer->drawRetryPrompt(centerX, centerY);
 	
