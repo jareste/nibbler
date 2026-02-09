@@ -192,63 +192,146 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 	float fontSize = 2.0f;
 	float fontSpacing = 0.20f;
 	float lineSpacing = 1.0f;
-	
-	std::string scoreNum = std::to_string(state.score);
-	std::string appleWord = (state.score == 1) ? "APPLE" : "APPLES";
-	
-	std::string completeText = "YOU ";
-	completeText += "ATE ";
-	completeText += scoreNum;
-	completeText += " ";
-	completeText += appleWord;
-	
-	const char* youText = "YOU ";
-	const char* ateText = "ATE ";
-	const char* scoreText = scoreNum.c_str();
-	
-	Vector2 youSize = MeasureTextEx(customFont, youText, fontSize * customFont.baseSize, fontSpacing);
-	Vector2 ateSize = MeasureTextEx(customFont, ateText, fontSize * customFont.baseSize, fontSpacing);
-	Vector2 scoreSize = MeasureTextEx(customFont, scoreText, fontSize * customFont.baseSize, fontSpacing);
-	
 	float conversionFactor = 0.020f;
-	float youWidth = youSize.x * conversionFactor;
-	float ateWidth = ateSize.x * conversionFactor;
-	float scoreWidth = scoreSize.x * conversionFactor;
 	
-	Vector3 currentPos = textPosition;
-	
-	// "YOU " - blue
-	DrawText3D(customFont, youText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
-	           graphic.snakeALightSide, 0.0f, 7.0f, 7.0f);
-	
-	// Move position for next word
-	currentPos.x += youWidth;
-	
-	// "ATE " - white
-	DrawText3D(customFont, ateText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
-	           graphic.customWhite, 0.0f, 7.0f, 7.0f);
-	
-	// Move position for next word
-	currentPos.x += ateWidth;
-	
-	// Score number - red
-	float scoreInterset = (static_cast<float>((scoreNum.length())) * 0.075f) + 0.2f;
-	DrawText3D(customFont, scoreText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
-	           graphic.foodSide, 0.0f, 7.0f, 7.0f + scoreInterset);
-	
-	// Move position for next word
-	currentPos.x += scoreWidth;
-	
-	// Add space before "APPLE(S)"
-	currentPos.x += 0.3f;  // Small space
-	
-	// "APPLE(S)" - white
-	DrawText3D(customFont, appleWord.c_str(), currentPos, fontSize, fontSpacing, lineSpacing, false, 
-	           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+	if (state.config.mode != GameMode::SINGLE && state.snake_B) {
+		// MULTIPLAYER MODE
+		
+		// p1 score
+		std::string scoreNumA = std::to_string(state.score);
+		std::string appleWordA = (state.score == 1) ? "APPLE" : "APPLES";
+		
+		const char* player1Text = "PLAYER 1 ";
+		const char* ateAText = "ATE ";
+		const char* scoreAText = scoreNumA.c_str();
+		
+		Vector2 player1Size = MeasureTextEx(customFont, player1Text, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 ateASize = MeasureTextEx(customFont, ateAText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 scoreASize = MeasureTextEx(customFont, scoreAText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 appleASize = MeasureTextEx(customFont, appleWordA.c_str(), fontSize * customFont.baseSize, fontSpacing);
+		
+		float player1Width = player1Size.x * conversionFactor;
+		float ateAWidth = ateASize.x * conversionFactor;
+		float scoreAWidth = scoreASize.x * conversionFactor;
+		float appleAWidth = appleASize.x * conversionFactor;
+		
+		float totalWidthA = player1Width + ateAWidth + scoreAWidth + appleAWidth;
+		
+		Vector3 currentPosA = textPosition;
+		currentPosA.x -= totalWidthA / 2.0f - 8.0f;  //centering
+		
+		// p1
+		DrawText3D(customFont, player1Text, currentPosA, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.snakeALightSide, 0.0f, 7.0f, 7.0f);
+		currentPosA.x += player1Width;
+		
+		// ate
+		DrawText3D(customFont, ateAText, currentPosA, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+		currentPosA.x += ateAWidth;
+		
+		// score
+		float scoreAInterset = (static_cast<float>((scoreNumA.length())) * 0.075f) + 0.2f;
+		DrawText3D(customFont, scoreAText, currentPosA, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.foodSide, 0.0f, 7.0f, 7.0f + scoreAInterset);
+		currentPosA.x += scoreAWidth + 0.3f;
+		
+		// apples
+		DrawText3D(customFont, appleWordA.c_str(), currentPosA, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+		
+		// p2 score
+		std::string scoreNumB = std::to_string(state.scoreB);
+		std::string appleWordB = (state.scoreB == 1) ? "APPLE" : "APPLES";
+		
+		const char* player2Text = "PLAYER 2 ";
+		const char* ateBText = "ATE ";
+		const char* scoreBText = scoreNumB.c_str();
+		
+		Vector2 player2Size = MeasureTextEx(customFont, player2Text, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 ateBSize = MeasureTextEx(customFont, ateBText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 scoreBSize = MeasureTextEx(customFont, scoreBText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 appleBSize = MeasureTextEx(customFont, appleWordB.c_str(), fontSize * customFont.baseSize, fontSpacing);
+		
+		float player2Width = player2Size.x * conversionFactor;
+		float ateBWidth = ateBSize.x * conversionFactor;
+		float scoreBWidth = scoreBSize.x * conversionFactor;
+		float appleBWidth = appleBSize.x * conversionFactor;
+		
+		float totalWidthB = player2Width + ateBWidth + scoreBWidth + appleBWidth;
+		
+		Vector3 currentPosB = textPosition;
+		currentPosB.x -= totalWidthB / 2.0f - 8.0f;			//centering
+		currentPosB.z += fontSize + lineSpacing + 1.0f;
+		
+		// p2
+		DrawText3D(customFont, player2Text, currentPosB, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.snakeBLightSide, 0.0f, 7.0f, 7.0f);
+		currentPosB.x += player2Width;
+		
+		// ate
+		DrawText3D(customFont, ateBText, currentPosB, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+		currentPosB.x += ateBWidth;
+		
+		// score
+		float scoreBInterset = (static_cast<float>((scoreNumB.length())) * 0.075f) + 0.2f;
+		DrawText3D(customFont, scoreBText, currentPosB, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.foodSide, 0.0f, 7.0f, 7.0f + scoreBInterset);
+		currentPosB.x += scoreBWidth + 0.3f;
+		
+		// apples
+		DrawText3D(customFont, appleWordB.c_str(), currentPosB, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+		
+		// Retry instructions
+		textPosition.x -= 7.0f;
+		textPosition.z += (fontSize + lineSpacing + 1.0f) * 3.0f;  // Skip 3 lines
+		
+	} else {
+		// SINGLE PLAYER MODE
+		std::string scoreNum = std::to_string(state.score);
+		std::string appleWord = (state.score == 1) ? "APPLE" : "APPLES";
+		
+		const char* youText = "YOU ";
+		const char* ateText = "ATE ";
+		const char* scoreText = scoreNum.c_str();
+		
+		Vector2 youSize = MeasureTextEx(customFont, youText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 ateSize = MeasureTextEx(customFont, ateText, fontSize * customFont.baseSize, fontSpacing);
+		Vector2 scoreSize = MeasureTextEx(customFont, scoreText, fontSize * customFont.baseSize, fontSpacing);
+		
+		float youWidth = youSize.x * conversionFactor;
+		float ateWidth = ateSize.x * conversionFactor;
+		float scoreWidth = scoreSize.x * conversionFactor;
+		
+		Vector3 currentPos = textPosition;
+		
+		// you
+		DrawText3D(customFont, youText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.snakeALightSide, 0.0f, 7.0f, 7.0f);
+		currentPos.x += youWidth;
+		
+		// ate
+		DrawText3D(customFont, ateText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
+		currentPos.x += ateWidth;
+		
+		// score
+		float scoreInterset = (static_cast<float>((scoreNum.length())) * 0.075f) + 0.2f;
+		DrawText3D(customFont, scoreText, currentPos, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.foodSide, 0.0f, 7.0f, 7.0f + scoreInterset);
+		currentPos.x += scoreWidth + 0.3f;
+		
+		// apples
+		DrawText3D(customFont, appleWord.c_str(), currentPos, fontSize, fontSpacing, lineSpacing, false, 
+		           graphic.customWhite, 0.0f, 7.0f, 7.0f);
 
-	// Retry/Quit instructions
-	textPosition.x -= 7.0f;
-	textPosition.z += fontSize + lineSpacing + 1.0f;
+		textPosition.x -= 7.0f;
+		textPosition.z += fontSize + lineSpacing + 1.0f;
+	}
+	
+	// Common retry/quit instructions
 	DrawText3D(customFont, "[ ENTER ]              RETRY", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customWhite, 0.0f, 7.0f, 7.0f);
 	DrawText3D(customFont, "          ············      ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 0.0f, 7.0f, 7.0f);
 
