@@ -236,57 +236,105 @@ void NCursesGraphic::drawTitle(int win_height, int win_width)
 	}
 }
 
-void NCursesGraphic::drawInstructions(int win_height, int win_width) {
+void NCursesGraphic::drawMode(const GameState &state, int win_height, int win_width, int anchorY) {
+	(void)win_height;
+
+	std::string modeText;
+	std::string base;
+	std::string combined;
+
+	anchorY += 1;
+	switch (state.config.mode) {
+		case GameMode::SINGLE:
+			modeText = "SINGLE";
+			base = " - MULTI - VsAI";
+			combined = modeText + base;
+
+			wattron(gameWindow, COLOR_PAIR(5));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 6, base.c_str());
+			wattroff(gameWindow, COLOR_PAIR(5));
+			
+			wattron(gameWindow, COLOR_PAIR(1));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2, modeText.c_str());
+			wattroff(gameWindow, COLOR_PAIR(1));
+
+			break;
+		
+		case GameMode::MULTI:
+			modeText = "MULTI";
+			base = "SINGLE -       - VsAI";
+			combined = base;
+
+			wattron(gameWindow, COLOR_PAIR(5));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2, base.c_str());
+			wattroff(gameWindow, COLOR_PAIR(5));
+
+			wattron(gameWindow, COLOR_PAIR(7));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 9, modeText.c_str());
+			wattroff(gameWindow, COLOR_PAIR(7));
+			break;
+	}
+}
+
+void NCursesGraphic::drawInstructions(const GameState &state, int win_height, int win_width) {
 	int anchorY = ((win_width / 2) < 42) ? win_height / 2 : (win_height / 2) + 5;
+
+	drawMode(state, win_height, win_width, anchorY);
 
 	wattron(gameWindow, COLOR_PAIR(4));
 	const char *instructions = "[ENTER]·······START";
-	int instrY = anchorY + 2;
+	int instrY = anchorY + 3;
 	mvwaddstr(gameWindow, instrY, 
 			(win_width / 2) - 10, instructions);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *instructionsDots = "·······";
-	int instrDotsY = anchorY + 2;
-	mvwaddstr(gameWindow, instrDotsY, 
+	mvwaddstr(gameWindow, instrY, 
 			(win_width / 2) - 3, instructionsDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
+
 	wattron(gameWindow, COLOR_PAIR(4));
-	
+	const char *mode = "[SPACE]········MODE";
+	int modeY = instrY + 1;
+	mvwaddstr(gameWindow, modeY, 
+			(win_width / 2) - 10, mode);
+	wattroff(gameWindow, COLOR_PAIR(4));
+	wattron(gameWindow, COLOR_PAIR(5));
+	const char *modeDots = "········";
+	mvwaddstr(gameWindow, modeY, 
+			(win_width / 2) - 3, modeDots);
+	wattroff(gameWindow, COLOR_PAIR(5));
+
+	wattron(gameWindow, COLOR_PAIR(4));	
 	const char *controls = "[↑↓←→]·········MOVE";
-	int controlsY = instrY + 1;
+	int controlsY = modeY + 1;
 	mvwaddstr(gameWindow, controlsY,
 			(win_width / 2) - 10, controls);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *controlsDots = "·········";
 	mvwaddstr(gameWindow, controlsY, 
 			(win_width / 2) - 4, controlsDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
-	wattron(gameWindow, COLOR_PAIR(4));
 
+	wattron(gameWindow, COLOR_PAIR(4));
 	const char *libs = "[1/2/3]······TRAVEL";
 	int libsY = controlsY + 1;
 	mvwaddstr(gameWindow, libsY,
 			(win_width / 2) - 10, libs);
-
 	wattroff(gameWindow, COLOR_PAIR(4));
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *travelDots = "······";
 	mvwaddstr(gameWindow, libsY, 
 			(win_width / 2) - 3, travelDots);
 	wattroff(gameWindow, COLOR_PAIR(5));
-	wattron(gameWindow, COLOR_PAIR(4));
 
+	wattron(gameWindow, COLOR_PAIR(4));
 	const char *quit = "[Q/ESC]········QUIT";
 	int quitY = libsY + 1;
 	mvwaddstr(gameWindow, quitY,
 			(win_width / 2) - 10, quit);
-	wattroff(gameWindow, COLOR_PAIR(5));
-
-	wattroff(gameWindow, COLOR_PAIR(4));
+	wattroff(gameWindow, COLOR_PAIR(5));	
 	wattron(gameWindow, COLOR_PAIR(5));
 	const char *quitDots = "········";
 	mvwaddstr(gameWindow, quitY, 
@@ -317,7 +365,7 @@ void NCursesGraphic::renderMenu(const GameState &state, float deltaTime) {
 	drawBorder();
 
 	drawTitle(win_height, win_width);
-	drawInstructions(win_height, win_width);	
+	drawInstructions(state, win_height, win_width);	
 	
 	wnoutrefresh(stdscr);
 	wnoutrefresh(gameWindow);
@@ -448,10 +496,14 @@ void NCursesGraphic::renderGameOver(const GameState &state, float deltaTime)
 Input NCursesGraphic::pollInput() {
 	int ch = getch();
 	switch (ch) {
-		case KEY_UP:    return Input::Up;
-		case KEY_DOWN:  return Input::Down;
-		case KEY_LEFT:  return Input::Left;
-		case KEY_RIGHT: return Input::Right;
+		case KEY_UP:    return Input::Up_A;
+		case KEY_DOWN:  return Input::Down_A;
+		case KEY_LEFT:  return Input::Left_A;
+		case KEY_RIGHT: return Input::Right_A;
+		case 'w':       return Input::Up_B;
+		case 's':       return Input::Down_B;
+		case 'a':       return Input::Left_B;
+		case 'd':       return Input::Right_B;
 		case 'q':       return Input::Quit;
 		case 'Q':       return Input::Quit;
 		case 27 :		return Input::Quit; // ESC key
@@ -531,6 +583,24 @@ void NCursesGraphic::drawSnake(const GameState &state) {
 		}
 	}
 	wattroff(gameWindow, COLOR_PAIR(1));
+
+	if (state.config.mode != GameMode::SINGLE) {
+		wattron(gameWindow, COLOR_PAIR(7));
+		for (int i = 0; i < state.snake_B->getLength(); ++i) {
+			int y = state.snake_B->getSegments()[i].y + 4;
+			int x = (state.snake_B->getSegments()[i].x * 2) + 4;
+			
+			if (i == 0) {
+				mvwaddstr(gameWindow, y, x, "⬢ ");
+			} else {
+				mvwaddstr(gameWindow, y, x,
+					(i == state.snake_B->getLength() - 1) ? "○ " :
+					(i % 2 == 0) ? "✛ " : "✲ "
+				);
+			}
+		}
+		wattroff(gameWindow, COLOR_PAIR(7));
+	}
 }
 
 void NCursesGraphic::drawFood(const GameState &state) {
