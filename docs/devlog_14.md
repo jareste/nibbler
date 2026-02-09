@@ -432,3 +432,9 @@ Okay, now I'm done for the day. Sunday, 20:00, goodbye day 18...
     - Ability (and visualization) to select single and multiplayer at START
     - Clearly show the relation between Players, Colors and Controls
     - Expand result display in GAMEOVER to home the multiplayer mode
+
+>BREAK!!
+
+After a coupe of hours, I think that the `SDL` multiplayer implementation is done. The menuing could maybe use some refining, but at this point this is the total opposite of important. I'd rather spend the rest of the day porting the multiplayer to the other libraries, and that's what I'll do. Regardin `SDL`, the job was *just* a second snake management injection in all the graphics pipelines and the game manager, this last part useful for the other versions in `NCurses` and `Raylib`. What I mean by this is that: no use in spending time collecting code snippets here, it's just boring stuff.
+
+I'll get into `Raylib` now.

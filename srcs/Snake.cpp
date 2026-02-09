@@ -134,6 +134,10 @@ Snake::~Snake() {
 	delete[] _segments;
 }
 
+void Snake::setAsDead(bool dead) { _isDead = dead; }
+
+bool Snake::isDead() const { return _isDead; }
+
 int Snake::getLength() const { return _length; }
 
 const Vec2 *Snake::getSegments() const { return _segments; }

@@ -2,9 +2,10 @@
 #include <cmath>
 
 SDLGraphic::SDLGraphic() : window(nullptr), renderer(nullptr), cellSize(50), borderOffset(0),
-	spawnInterval(0.3f), animationSpeed(.5f), enableTunnelEffect(true),
+	spawnInterval(0.3f), animationSpeed(.5f), enableTunnelEffect(true), smallMode(false),
 	lastFoodX(-1), lastFoodY(-1) {
 	lastSpawnTime = std::chrono::high_resolution_clock::now();
+	smallMode = ((windowWidth / 2) < 900) ? true : false;
 }
 
 SDLGraphic::~SDLGraphic() {
@@ -373,6 +374,10 @@ void SDLGraphic::renderGameOver(const GameState& state, float deltaTime) {
 	int centerX = windowWidth / 2;
 	int centerY = windowHeight / 2;
 	
+	if (state.config.mode != GameMode::SINGLE) {
+		textRenderer->drawWinner(state, centerX, centerY);	
+	}
+
 	titleHandler->renderGameOver(centerX, centerY, square, sep, customWhite);
 	textRenderer->drawScore(state, centerX, centerY);
 	textRenderer->drawRetryPrompt(centerX, centerY);

@@ -48,6 +48,7 @@ class SDLGraphic : public IGraphic {
 		float											spawnInterval;
 		float											animationSpeed;
 		bool											enableTunnelEffect;
+		bool											smallMode;
 
 		// This is needed for explosion particle spawning
 		int												lastFoodX;

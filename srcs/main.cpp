@@ -106,6 +106,7 @@ int main(int argc, char **argv) {
 		false,
 		GameStateType::Menu,
 		0,
+		0,
 		libManager.getAudioLib(),
 		config
 	};
@@ -192,6 +193,9 @@ int main(int argc, char **argv) {
 					snake_B = Snake(snake_A, width, height);
 					food = Food(Utils::getRandomVec2(width - 1, height - 1), width, height);
 					state.score = 0;
+					state.scoreB = 0;
+					state.snake_A.setAsDead(false);
+					state.snake_B->setAsDead(false);
 					state.gameOver = false;
 					state.isPaused = false;
 					accumulator = 0.0;

@@ -38,7 +38,8 @@ struct GameState {
 	bool			isRunning;
 	bool			isPaused;
 	GameStateType	currentState;
-	int				score;
+	int				score;		// for single player or player A in multiplayer
+	int				scoreB;		// for player B in multiplayer
 	IAudio*			audio;
 	GameConfig&		config;
 };

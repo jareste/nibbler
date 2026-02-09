@@ -15,6 +15,7 @@ class Snake {
 		int			_maxLength;
 		Vec2		*_segments;
 		Direction	_direction;
+		bool		_isDead = false;
 
 
 	public:
@@ -27,6 +28,9 @@ class Snake {
 		Snake &operator=(const Snake &other);
 		
 		~Snake();
+
+		void setAsDead(bool dead);
+		bool isDead() const;
 
 		int getLength() const;
 		const Vec2 *getSegments() const;

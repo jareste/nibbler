@@ -6,6 +6,7 @@
 #include <iostream>
 #include "colors.h"
 #include "DataStructs.hpp"
+#include "Snake.hpp"
 
 static constexpr SDL_Color customWhite{255, 248, 227, 255};  // Off-white
 static constexpr SDL_Color customGray{136, 136, 136, 255};   // Gray
@@ -19,6 +20,7 @@ class SDLTextRenderer {
 		SDL_Renderer*	renderer;
 		TTF_Font*		mainFont;
 		TTF_Font*		smallFont;
+		bool			smallMode;
 		bool			initialized;
 		int				windowWidth;
 		int				windowHeight;
@@ -46,6 +48,7 @@ class SDLTextRenderer {
 		bool init(int windowWidth, int windowHeight, int cellSize, int borderOffset);
 
 		void drawInstructions(const GameState& state, int centerX, int centerY);
+		void drawWinner(const GameState &state, int centerX, int centerY);
 		void drawScore(const GameState& state, int centerX, int centerY);
 		void drawRetryPrompt(int centerX, int centerY);
 

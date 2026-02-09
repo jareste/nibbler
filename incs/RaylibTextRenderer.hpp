@@ -7,8 +7,8 @@ class RaylibGraphic;
 
 class RaylibTextRenderer {
 	private:
-		RaylibGraphic& graphic;
-		Font customFont;  // Font with Unicode support
+		RaylibGraphic&	graphic;
+		Font			customFont;
 		
 		void loadFont();
 
