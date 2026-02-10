@@ -20,7 +20,7 @@ Snake::Snake(int width, int height): _length(4), _maxLength((width * height) - 2
 			break;
 	}
 
-	Vec2 headPosition = { Utils::getRandomRangeInt(8, width - 8), Utils::getRandomRangeInt(8, height - 8) };
+	Vec2 headPosition = Utils::getRandomSpawnPosition(width, height);
 
 	switch (_direction) {
 		case Direction::Up:

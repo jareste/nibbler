@@ -133,6 +133,12 @@ void SDLTextRenderer::drawMode(const GameState &state, int centerX, int centerY,
 			stateB = "SINGLE -       - VsAI";
 			textColor = goldenYellow;
 			break;
+
+		case GameMode::AI:
+			stateA = "                 VsAI";
+			stateB = "SINGLE - MULTI -     ";
+			textColor = lightGreen;
+			break;
 	}
 	drawText(stateA, centerX, centerY, offset, currentFont, textColor, true);
 	textColor = customGray;
@@ -289,11 +295,15 @@ void SDLTextRenderer::drawScore(const GameState& state, int centerX, int centerY
 		}
 		SDL_FreeSurface(appleASurface);
 		
-		// Player 2 Score (next line)
+		// Player 2/AI Score (next line)
 		std::string scoreNumB = std::to_string(state.scoreB);
 		std::string appleWordB = (state.scoreB == 1) ? "APPLE" : "APPLES";
 		
-		SDL_Surface* player2Surface = TTF_RenderUTF8_Blended(currentFont, "PLAYER 2", goldenYellow);
+		// Determine label and color based on game mode
+		const char* player2Label = (state.config.mode == GameMode::AI) ? "AI" : "PLAYER 2";
+		SDL_Color player2Color = (state.config.mode == GameMode::AI) ? lightGreen : goldenYellow;
+		
+		SDL_Surface* player2Surface = TTF_RenderUTF8_Blended(currentFont, player2Label, player2Color);
 		SDL_Surface* ateBSurface = TTF_RenderUTF8_Blended(currentFont, "ATE", customWhite);
 		SDL_Surface* scoreBSurface = TTF_RenderUTF8_Blended(currentFont, scoreNumB.c_str(), lightRed);
 		SDL_Surface* appleBSurface = TTF_RenderUTF8_Blended(currentFont, appleWordB.c_str(), customWhite);
@@ -453,19 +463,26 @@ void SDLTextRenderer::drawWinner(const GameState &state, int centerX, int center
 	TTF_Font* currentFont = smallMode ? smallFont : mainFont;
 	int offset = smallMode? - 250 : -400;
 
-	if (state.snake_A.isDead()) {
-		if (state.snake_B->isDead()) {
-			res = Draw;
-		} else 
-			res = B_win;
-	} else
+	// Determine winner based on who died
+	if (state.snake_A.isDead() && state.snake_B->isDead()) {
+		// Both died - check scores
+		res = Draw;
+	} else if (state.snake_A.isDead()) {
+		// Only A died
+		res = B_win;
+	} else if (state.snake_B->isDead()) {
+		// Only B died
 		res = A_win;
+	} else {
+		// Neither died yet
+		res = Draw;
+	}
 
 	if (res == Draw) {
 		if (state.score > state.scoreB)
 			res = A_win;
 		else if (state.scoreB > state.score)
-			res = A_win;
+			res = B_win;
 	}
 
 	if (state.score == 0 && state.score == state.scoreB)
@@ -477,9 +494,14 @@ void SDLTextRenderer::drawWinner(const GameState &state, int centerX, int center
 			textColor = lightBlue;
 			break;
 
-		case B_win:	
-			winnerText = "Player 2 WINS";
-			textColor = goldenYellow;
+		case B_win:
+			if (state.config.mode == GameMode::AI) {
+				winnerText = "AI WINS";
+				textColor = lightGreen;
+			} else {
+				winnerText = "Player 2 WINS";
+				textColor = goldenYellow;
+			}
 			break;
 
 		case Draw:

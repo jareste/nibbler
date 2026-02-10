@@ -3,9 +3,19 @@
 GameManager::GameManager(GameState *state) : _state(state) {}
 
 void GameManager::update()  {
+	// If AI mode → generate AI decision each frame
+	if (_state->config.mode == GameMode::AI && aiController && _state->snake_B) {
+		Input aiMove = aiController->decideNextMove(*_state);
+		if (aiMove != Input::None) {
+			bufferInput(aiMove);
+		}
+	}
+	
 	processNextInput();
 	_state->snake_A.move();
-	if (_state->config.mode != GameMode::SINGLE && _state->snake_B)
+	if (_state->config.mode == GameMode::MULTI && _state->snake_B)
+		_state->snake_B->move();
+	if (_state->config.mode == GameMode::AI && _state->snake_B)
 		_state->snake_B->move();
 	_state->isRunning = checkGameOverCollision();
 	checkHeadFoodCollision();
@@ -17,9 +27,12 @@ void GameManager::bufferInput(Input input) {
 		if (inputBuffer_A.size() < MAX_BUFFER_SIZE) {
 			inputBuffer_A.push(input);
 		}
-	}
-	// Player B (WASD)
-	else if (input >= Input::Up_B && input <= Input::Right_B) {
+	} else if (_state->config.mode == GameMode::MULTI && input >= Input::Up_B && input <= Input::Right_B) { 
+		if (inputBuffer_B.size() < MAX_BUFFER_SIZE) {
+			inputBuffer_B.push(input); // Player B (WASD)
+		}
+	} else if (_state->config.mode == GameMode::AI && input >= Input::Up_B && input <= Input::Right_B) {
+		// AI moves
 		if (inputBuffer_B.size() < MAX_BUFFER_SIZE) {
 			inputBuffer_B.push(input);
 		}
@@ -142,10 +155,11 @@ bool GameManager::checkGameOverCollision()
 	if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
 		Vec2	head_B = _state->snake_B->getSegments()[0];
 
+		// Check if snake_A's head collides with snake_B's body
 		for (int i = 0; i < _state->snake_B->getLength(); i++)
 		{
 			if (_state->snake_B->getSegments()[i].x == head_A.x && _state->snake_B->getSegments()[i].y == head_A.y)
-				_state->snake_B->setAsDead(true);
+				_state->snake_A.setAsDead(true);
 		}
 
 		if (head_B.x < 0 || head_B.x > _state->width - 1)
@@ -164,10 +178,11 @@ bool GameManager::checkGameOverCollision()
 			return false;
 		}
 
+		// Check if snake_B's head collides with snake_A's body
 		for (int i = 0; i < _state->snake_A.getLength(); i++)
 		{
 			if (_state->snake_A.getSegments()[i].x == head_B.x && _state->snake_A.getSegments()[i].y == head_B.y)
-				_state->snake_A.setAsDead(true);
+				_state->snake_B->setAsDead(true);
 		}
 
 		if (_state->snake_A.isDead()) {
@@ -186,4 +201,8 @@ void GameManager::clearInputBuffer() {
 	while (!inputBuffer_B.empty()) {
 		inputBuffer_B.pop();
 	}
+}
+
+void GameManager::setAIController(SnakeAI *ai) {
+	aiController = ai;
 }

@@ -94,8 +94,10 @@ void SDLGraphic::render(const GameState& state, float deltaTime) {
 	particleSystem->render();
 	
 	drawSnake(state.snake_A, snakeATail, lightBlue);
-	if (state.config.mode != GameMode::SINGLE && state.snake_B)
+	if (state.config.mode == GameMode::MULTI && state.snake_B)
 		drawSnake(*(state.snake_B), snakeBTail, goldenYellow);
+	else if (state.config.mode == GameMode::AI && state.snake_B)
+		drawSnake(*(state.snake_B), snakeBTail, lightGreen);
 	drawFood(state);
 
 	drawBorder(cellSize);

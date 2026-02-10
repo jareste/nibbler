@@ -84,3 +84,21 @@ No leaks after library switching
 <input disabled="" type="checkbox"> Performance
 Game loop maintains target FPS
 Update time is reasonable
+
+[x] Pathfinder done & tested
+[x] Implement FloodFill::countReachable()
+[x] Implement FloodFill::canReachTail()
+[x] Write tests for FloodFill
+
+
+[ ] Implement SnakeAI::decideNextMove()
+[ ] Implement SnakeAI::goToFood()
+[ ] Implement SnakeAI::survivalMode()
+[ ] Implement SnakeAI::maximizeSpace()
+[ ] Helper: positionToInput()
+[ ] Helper: isSafeMove()
+
+[ ] Connect AI to GameManager
+[ ] Test AI in-game (vs Player)
+[ ] Tune difficulty parameters
+[ ] Add devlog section 15.6

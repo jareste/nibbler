@@ -1,6 +1,7 @@
 #include "../incs/IGraphic.hpp"
 #include "../incs/IAudio.hpp"
 #include "../incs/Snake.hpp"
+#include "../incs/SnakeAI.hpp"
 #include "../incs/Food.hpp"
 #include "../incs/DataStructs.hpp"
 #include "../incs/GameManager.hpp"
@@ -45,6 +46,10 @@ void switchConfigMode(GameConfig &config)
 			break;
 		
 		case GameMode::MULTI:
+			config.mode = GameMode::AI;
+			break;
+
+		case GameMode::AI:
 			config.mode = GameMode::SINGLE;
 			break;
 	}
@@ -97,7 +102,9 @@ int main(int argc, char **argv) {
 
 	Snake snake_A(width, height);
 	Snake snake_B(snake_A, width, height);
-	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+	std::unique_ptr<SnakeAI> aiController = nullptr;
+
+	Food food(Vec2{0, 0}, width, height);
 	
 	GameState state {
 		width, height, snake_A, &snake_B, food,
@@ -110,6 +117,7 @@ int main(int argc, char **argv) {
 		libManager.getAudioLib(),
 		config
 	};
+	
 	food.replaceInFreeSpace(&state);
 
 	GameManager gameManager(&state);
@@ -148,12 +156,24 @@ int main(int argc, char **argv) {
 		switch (state.currentState) {
 			case GameStateType::Menu:
 				if (input == Input::Enter) {
+					if (aiController) {
+						gameManager.setAIController(nullptr);
+						aiController.reset();
+					}
+					
+					if (state.config.mode == GameMode::AI) {
+						aiController = std::make_unique<SnakeAI>(AIConfig::medium());
+						gameManager.setAIController(aiController.get());
+					}
+					
 					state.currentState = GameStateType::Playing;
 					accumulator = 0.0;
-				} else if (input == Input::Pause)
-					switchConfigMode(state.config);
-				libManager.getGraphicLib()->renderMenu(state, deltaTime);
-				break;
+			} else if (input == Input::Pause) {
+				switchConfigMode(state.config);
+			}
+    
+    libManager.getGraphicLib()->renderMenu(state, deltaTime);
+    break;
 				
 			case GameStateType::Playing:
 				if (input == Input::Pause) {
@@ -191,7 +211,8 @@ int main(int argc, char **argv) {
 				if (input == Input::Enter) {
 					snake_A = Snake(width, height);
 					snake_B = Snake(snake_A, width, height);
-					food = Food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+					food = Food(Vec2{0, 0}, width, height);
+					food.replaceInFreeSpace(&state);
 					state.score = 0;
 					state.scoreB = 0;
 					state.snake_A.setAsDead(false);
