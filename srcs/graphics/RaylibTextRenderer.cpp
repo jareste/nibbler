@@ -48,7 +48,7 @@ void RaylibTextRenderer::drawModes(const GameState &state) {
 			break;
 
 		case GameMode::MULTI:
-			DrawText3D(customFont, "         MULTI       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeBLightSide, 90.0f, 7.0f, 5.0f);
+			DrawText3D(customFont, "         MULTI       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeBLightTop, 90.0f, 7.0f, 5.0f);
 			DrawText3D(customFont, "SINGLE -       - VsAI", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 5.0f);
 			break;
 	}	
@@ -232,7 +232,7 @@ void RaylibTextRenderer::drawWinner(const GameState& state) {
 		
 		case B_win:	
 			winnerText = "PLAYER 2 WINS";
-			textColor = graphic.snakeBLightSide;
+			textColor = graphic.snakeBLightTop;
 			break;
 		
 		case Draw:
@@ -329,7 +329,7 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 		
 		// p2
 		DrawText3D(customFont, player2Text, currentPosB, fontSize, fontSpacing, lineSpacing, false, 
-		           graphic.snakeBLightSide, 0.0f, 7.0f, 7.0f);
+		           graphic.snakeBLightTop, 0.0f, 7.0f, 7.0f);
 		currentPosB.x += player2Width;
 		
 		// ate

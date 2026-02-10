@@ -438,7 +438,7 @@ Okay, now I'm done for the day. Sunday, 20:00, goodbye day 18...
 
 After a coupe of hours, I think that the `SDL` multiplayer implementation is done. The menuing could maybe use some refining, but at this point this is the total opposite of important. I'd rather spend the rest of the day porting the multiplayer to the other libraries, and that's what I'll do. Regardin `SDL`, the job was *just* a second snake management injection in all the graphics pipelines and the game manager, this last part useful for the other versions in `NCurses` and `Raylib`. What I mean by this is that: no use in spending time collecting code snippets here, it's just boring stuff.
 
-I'll get into `Raylib` now.
+I'll get into `Raylib` an `NCurses` immediately, which will also mean a lot of tweaks, reformating and tiny adjusting that text, this color, those etceteras. I feel that because I'm slightly rushing towards ending the V1 development tomorrow I might be spicing things up with more *magic numbers* that I would like, but once again, this is pragmatically unimportant (although soul crushing and one of those things that God sees, but alas). I'll keep on writing stuff end the day and come back tomorrow for the final challenge.
 
 <br>
 <br>
