@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DataStructs.hpp"
+#include "GridHelper.hpp"
 #include <vector>
 #include <cmath>
 #include <set>
@@ -8,7 +9,7 @@
 #include <climits>
 #include <algorithm>
 
-class PathFinder {
+class PathFinder: protected GridHelper {
 private:
 	struct Node {
 		Vec2 pos;
@@ -31,9 +32,6 @@ private:
 		}
 	};
 
-	int manhattanDistance(Vec2 a, Vec2 b);
-	bool isWalkable(const GameState& state, Vec2 pos);
-	std::vector<Vec2> getNeighbors(Vec2 pos);
 	std::vector<Vec2> reconstructPath(Node *goalNode);
 	void cleanAllNodes(std::vector<Node*> allNodes);
 

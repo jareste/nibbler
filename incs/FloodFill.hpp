@@ -2,10 +2,19 @@
 
 #include "Snake.hpp"
 #include "DataStructs.hpp"
+#include "GridHelper.hpp"
 #include <vector>
+#include <queue>
 
-class FloodFill {
+class GridHelper;
+
+class FloodFill : protected GridHelper {
 public:
+	FloodFill() = default;
+	FloodFill(const FloodFill &other) = delete;
+	FloodFill &operator=(const FloodFill &other) = delete;
+	~FloodFill() = default;
+
 	// count reachable empty cells from start
 	int countReachable(
 		const GameState& state,
@@ -18,8 +27,4 @@ public:
 		const Snake& aiSnake,
 		const std::vector<Vec2>& proposedPath
 	);
-	
-private:
-	std::vector<std::vector<bool>> visited;
-	void floodFillRecursive(const GameState& state, Vec2 pos);
 };

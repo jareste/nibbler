@@ -204,6 +204,134 @@ std::vector<Vec2> PathFinder::findPath(Vec2 start, Vec2 goal, const GameState& s
 int manhattanDistance(Vec2 a, Vec2 b);
 bool isWalkable(Vec2 pos, const GameState& state);
 ```
+Writing an `A*` algorithm is basically like exploring a maze with priority queue. The **most promising path** must always be checked first:
+- Check paths that look closer to the goal first
+- Track distance traveled to prevent infinite loops
+
+The implementation itself is sustained by coding the ability to:
+- Calculate the manhattan distance between nodes (abs difference between x and y sum path)
+- Check if a node is walkable (not ocuppied, in bounds, not a wall, ...)
+- Get every neighbour of a node for iteration (up, down, left, right)
+- Reconstruct a path from a list of checked and confirmed path-forming nodes
+- A main pathfinding loop, based on a couple of data containers (and one that cleans up after itself!):
+```cpp
+std::multiset<Node*, CompareNode> openList;
+std::vector<std::vector<bool>> visited(state.width, 
+											std::vector<bool>(state.height, false));
+std::vector<Node*> allNodes; //needed for clenaup
+```
+
+> Using `multiset` for the `openList` because it:
+> - Automatically sorts by f-cost (lowest first)
+> - Allows duplicate f-costs (multiple paths with same cost)
+> - Dulicates are accepted for simplicity (the `visited` array prevents infinite loops)
+
+So, the core of the PathFinding looks like this:
+```cpp
+std::vector<Vec2> PathFinder::findPath(const GameState &state, Vec2 start, Vec2 goal, int maxDepth) {
+	std::multiset<Node*, CompareNode> openList;
+	std::vector<std::vector<bool>> visited(state.width, 
+											std::vector<bool>(state.height, false));
+	std::vector<Node*> allNodes; //needed for clenaup
+
+	Node *startNode = new Node {
+		start,
+		0,
+		manhattanDistance(start, goal),
+		nullptr
+	};
+
+	openList.insert(startNode);
+	allNodes.push_back(startNode);
+	int nodesExplored = 0;
+
+	while (!openList.empty() && nodesExplored < maxDepth) {
+		nodesExplored++;
+
+		Node *current = *openList.begin();
+		openList.erase(openList.begin()); // take the begin node because CompareNode sorts ascending, i.e. the one with lowest f-cost
+
+		if (current->pos.x == goal.x && current->pos.y == goal.y) {
+			// found the food
+			std::vector<Vec2> path = reconstructPath(current);
+
+			cleanAllNodes(allNodes);
+
+			return path;
+		}
+
+		visited[current->pos.x][current->pos.y] = true;
+
+		std::vector<Vec2> neighbors = getNeighbors(current->pos);
+
+		for (Vec2 neighborPos : neighbors) {
+			// skip non walkable and visited positions
+			if (!isWalkable(state, neighborPos)) continue;
+			if (visited[neighborPos.x][neighborPos.y]) continue;
+
+			int tentativeGCost = current->gCost + 1; // minimum cost would be one step
+			int hCost = manhattanDistance(neighborPos, goal);
+
+			Node * neighborNode = new Node {
+				neighborPos,
+				tentativeGCost,
+				hCost,
+				current		//parent is current node
+			};
+
+			openList.insert(neighborNode);
+			allNodes.push_back(neighborNode);
+		}
+	}
+
+	cleanAllNodes(allNodes);
+
+	return {};
+}
+```
+
+1. Sets up the necessary data structures and a counter for explored nodes (the latter for difficulty options)
+2. Creates a base, starting node and inserts it in the `openList` (the loop is based around it's contents)
+3. Builds a loop, with dependency on the `openList` (not empty) and the amount of explored nodes (maxDepth, set up in the difficulty presets, marks the end of a search (its breadth, basically))
+4. The loop iself:
+    1. **Picks** the first node from `openList` (remember, already sorted)
+    2. **Checks** if it's the goal position and if so, reconstruct the path
+    3. **If not goal**, mark spot as visited, get its neighbors and insert them into `openList`
+    4. **Repeats** until goal is reached or game space is exhausted (or maxDepth is reached)
+
+The reconstruction process of the path is fairly simple:
+```cpp
+std::vector<Vec2> PathFinder::reconstructPath(Node *goalNode) {
+	std::vector<Vec2> path;
+	Node *current = goalNode;
+
+	// main idea -> follow parent nodes backwards
+	while (current != nullptr && current->parent != nullptr) {
+		path.push_back(current->pos);
+		current = current->parent;
+	}
+
+	std::reverse(path.begin(), path.end());
+
+	return path; // starting position is not included because the snake is there
+}
+```
+
+Each `Node` stores a pointer to its `parent` (the node it came from). This creates a **linked list 
+from goal back to start**. The reconstruction process:
+1. Starts at the goal node
+2. Follows `parent` pointers backwards
+3. Collects positions into a vector
+4. Reverses the vector to get **start → goal** order
+5. Excludes the starting position (the snake is already there)
+
+The result: a vector of positions representing the optimal path! (Or alternatively: P A T H  F O U N D*)
+
+> *imagine this as a you died *dark souls* screen, why not, it's free.
+
+> you know what, I'm going to do it:
+
+<img src="PATH_FOUND.jpeg" alt="path found dark souls style in Majula because Majula is extremely cool">
 
 <br>
 <br>

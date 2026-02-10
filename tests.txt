@@ -85,10 +85,20 @@ No leaks after library switching
 Game loop maintains target FPS
 Update time is reasonable
 
-[x] Write manhattanDistance()
-[x] Write isWalkable()
-[x] Write getNeighbors()
-[x] Choose data structures (open/closed/map)
-[x] Implement main A* loop
-[x] Implement path reconstruction
-[ ] Test with simple case (empty grid)
+[x] Pathfinder done & tested
+[x] Implement FloodFill::countReachable()
+[x] Implement FloodFill::canReachTail()
+[x] Write tests for FloodFill
+
+
+[ ] Implement SnakeAI::decideNextMove()
+[ ] Implement SnakeAI::goToFood()
+[ ] Implement SnakeAI::survivalMode()
+[ ] Implement SnakeAI::maximizeSpace()
+[ ] Helper: positionToInput()
+[ ] Helper: isSafeMove()
+
+[ ] Connect AI to GameManager
+[ ] Test AI in-game (vs Player)
+[ ] Tune difficulty parameters
+[ ] Add devlog section 15.6

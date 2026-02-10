@@ -26,7 +26,7 @@ INCDIR          := incs
 # -=-=-=-=-    MAIN PROGRAM FILES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
 SRC             := main.cpp LibraryManager.cpp GameManager.cpp Snake.cpp Food.cpp Utils.cpp
-AI_SRC          := AI/AIConfig.cpp AI/FloodFill.cpp AI/Pathfinder.cpp AI/SnakeAI.cpp
+AI_SRC          := AI/AIConfig.cpp AI/FloodFill.cpp AI/Pathfinder.cpp AI/SnakeAI.cpp AI/GridHelper.cpp
 ALL_SRC         := $(SRC) $(AI_SRC)
 
 SRCS            := $(addprefix $(SRCDIR)/, $(ALL_SRC))
@@ -73,7 +73,7 @@ RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o .obj/libs/RaylibTitleHandler.o .ob
 NCURSES_OBJS     := .obj/libs/NCursesGraphic.o
 AUDIO_OBJS       := .obj/libs/SDLMIXAudio.o
 
-AI_OBJS          := $(OBJDIR)/AI/AIConfig.o $(OBJDIR)/AI/FloodFill.o $(OBJDIR)/AI/Pathfinder.o $(OBJDIR)/AI/SnakeAI.o
+AI_OBJS          := $(OBJDIR)/AI/AIConfig.o $(OBJDIR)/AI/FloodFill.o $(OBJDIR)/AI/Pathfinder.o $(OBJDIR)/AI/SnakeAI.o $(OBJDIR)/AI/GridHelper.o
 GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o $(AI_OBJS) 
 
 # -=-=-=-=-    FLAGS FOR EACH LIBRARY -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
