@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 
 	const std::string audioLib = "./nibbler_sdl_mix.so";
 
-	int currentLib = 1;
+	int currentLib = 0;
 
 	LibraryManager libManager;
 	if (!libManager.loadGraphicLib(graphicLibs[currentLib].data()) || !libManager.loadAudioLib(audioLib.c_str()))
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	Snake snake_B(snake_A, width, height);
 	std::unique_ptr<SnakeAI> aiController = nullptr;
 
-	Food food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+	Food food(Vec2{0, 0}, width, height);
 	
 	GameState state {
 		width, height, snake_A, &snake_B, food,
@@ -117,6 +117,7 @@ int main(int argc, char **argv) {
 		libManager.getAudioLib(),
 		config
 	};
+	
 	food.replaceInFreeSpace(&state);
 
 	GameManager gameManager(&state);
@@ -210,7 +211,8 @@ int main(int argc, char **argv) {
 				if (input == Input::Enter) {
 					snake_A = Snake(width, height);
 					snake_B = Snake(snake_A, width, height);
-					food = Food(Utils::getRandomVec2(width - 1, height - 1), width, height);
+					food = Food(Vec2{0, 0}, width, height);
+					food.replaceInFreeSpace(&state);
 					state.score = 0;
 					state.scoreB = 0;
 					state.snake_A.setAsDead(false);

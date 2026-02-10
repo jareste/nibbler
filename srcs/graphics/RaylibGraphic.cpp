@@ -271,8 +271,10 @@ void RaylibGraphic::render(const GameState& state, float deltaTime){
 	drawGroundPlane();
 	//drawWalls();
 	drawSnake(&state.snake_A, snakeAHidden, snakeALightFront, snakeALightTop, snakeALightSide, snakeADarkFront, snakeADarkTop, snakeADarkSide);
-	if (state.config.mode != GameMode::SINGLE)
+	if (state.config.mode == GameMode::MULTI)
 		drawSnake(state.snake_B, snakeBHidden, snakeBLightFront, snakeBLightTop, snakeBLightSide, snakeBDarkFront, snakeBDarkTop, snakeBDarkSide);
+	else if (state.config.mode == GameMode::AI)
+		drawSnake(state.snake_B, snakeAIHidden, snakeAILightFront, snakeAILightTop, snakeAILightSide, snakeAIDarkFront, snakeAIDarkTop, snakeAIDarkSide);
 	drawFood(&state.food);
 
 	// DEBUG

@@ -155,10 +155,11 @@ bool GameManager::checkGameOverCollision()
 	if (_state->config.mode != GameMode::SINGLE && _state->snake_B) {
 		Vec2	head_B = _state->snake_B->getSegments()[0];
 
+		// Check if snake_A's head collides with snake_B's body
 		for (int i = 0; i < _state->snake_B->getLength(); i++)
 		{
 			if (_state->snake_B->getSegments()[i].x == head_A.x && _state->snake_B->getSegments()[i].y == head_A.y)
-				_state->snake_B->setAsDead(true);
+				_state->snake_A.setAsDead(true);
 		}
 
 		if (head_B.x < 0 || head_B.x > _state->width - 1)
@@ -177,10 +178,11 @@ bool GameManager::checkGameOverCollision()
 			return false;
 		}
 
+		// Check if snake_B's head collides with snake_A's body
 		for (int i = 0; i < _state->snake_A.getLength(); i++)
 		{
 			if (_state->snake_A.getSegments()[i].x == head_B.x && _state->snake_A.getSegments()[i].y == head_B.y)
-				_state->snake_A.setAsDead(true);
+				_state->snake_B->setAsDead(true);
 		}
 
 		if (_state->snake_A.isDead()) {

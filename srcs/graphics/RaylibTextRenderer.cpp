@@ -235,9 +235,14 @@ void RaylibTextRenderer::drawWinner(const GameState& state) {
 			textColor = graphic.snakeALightSide;
 			break;
 		
-		case B_win:	
-			winnerText = "PLAYER 2 WINS";
-			textColor = graphic.snakeBLightTop;
+		case B_win:
+			if (state.config.mode == GameMode::AI) {
+				winnerText = "AI WINS";
+				textColor = graphic.snakeAILightTop;
+			} else {
+				winnerText = "PLAYER 2 WINS";
+				textColor = graphic.snakeBLightTop;
+			}
 			break;
 		
 		case Draw:
@@ -312,7 +317,7 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 		std::string scoreNumB = std::to_string(state.scoreB);
 		std::string appleWordB = (state.scoreB == 1) ? "APPLE" : "APPLES";
 		
-		const char* player2Text = "PLAYER 2 ";
+		const char* player2Text = (state.config.mode == GameMode::AI) ? "AI " : "PLAYER 2 ";
 		const char* ateBText = "ATE ";
 		const char* scoreBText = scoreNumB.c_str();
 		
@@ -333,8 +338,9 @@ void RaylibTextRenderer::drawRetry(const GameState& state) {
 		currentPosB.z += fontSize + lineSpacing + 1.0f;
 		
 		// p2
+		Color player2Color = (state.config.mode == GameMode::AI) ? graphic.snakeAILightTop : graphic.snakeBLightTop;
 		DrawText3D(customFont, player2Text, currentPosB, fontSize, fontSpacing, lineSpacing, false, 
-		           graphic.snakeBLightTop, 0.0f, 7.0f, 7.0f);
+		           player2Color, 0.0f, 7.0f, 7.0f);
 		currentPosB.x += player2Width;
 		
 		// ate

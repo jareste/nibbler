@@ -452,8 +452,13 @@ void NCursesGraphic::drawGameOverScreen(const GameState &state, int win_height, 
 				winnerColor = 1; // Blue
 				break;
 			case B_win:
-				winnerText = "PLAYER 2 WINS";
-				winnerColor = 7; // Yellow
+				if (state.config.mode == GameMode::AI) {
+					winnerText = "AI WINS";
+					winnerColor = 6; // Green (AI)
+				} else {
+					winnerText = "PLAYER 2 WINS";
+					winnerColor = 7; // Yellow
+				}
 				break;
 			case Draw:
 				winnerText = "MATCH ENDED IN DRAW";
@@ -499,21 +504,38 @@ void NCursesGraphic::drawGameOverScreen(const GameState &state, int win_height, 
 		
 		int scoreYB = scoreY + 1;
 		
-		wattron(gameWindow, COLOR_PAIR(7)); // Yellow
-		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 11, "PLAYER 2 ");
-		wattroff(gameWindow, COLOR_PAIR(7));
+		const char* player2Label = (state.config.mode == GameMode::AI) ? "AI " : "PLAYER 2 ";
+		int player2Color = (state.config.mode == GameMode::AI) ? 6 : 7; 
+		
+		// Calculate offsets based on mode
+		int labelOffset, ateOffset, scoreOffset;
+		if (state.config.mode == GameMode::AI) {
+			// AI label
+			labelOffset = -8;
+			ateOffset = -5;
+			scoreOffset = -1;
+		} else {
+			// Player 2 label
+			labelOffset = -11;
+			ateOffset = -2;
+			scoreOffset = 2;
+		}
+		
+		wattron(gameWindow, COLOR_PAIR(player2Color));
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + labelOffset, player2Label);
+		wattroff(gameWindow, COLOR_PAIR(player2Color));
 		
 		wattron(gameWindow, COLOR_PAIR(4)); // White
-		mvwaddstr(gameWindow, scoreYB, (win_width / 2) - 2, "ATE ");
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + ateOffset, "ATE ");
 		wattroff(gameWindow, COLOR_PAIR(4));
 		
 		wattron(gameWindow, COLOR_PAIR(2)); // Light red/Food color
-		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + 2, scoreStringB.c_str());
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + scoreOffset, scoreStringB.c_str());
 		wattroff(gameWindow, COLOR_PAIR(2));
 		
 		wattron(gameWindow, COLOR_PAIR(4)); // White
 		std::string appleTextB = " " + appleWordB;
-		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + scoreStringB.length() + 2, appleTextB.c_str());
+		mvwaddstr(gameWindow, scoreYB, (win_width / 2) + scoreOffset + scoreStringB.length(), appleTextB.c_str());
 		wattroff(gameWindow, COLOR_PAIR(4));
 		
 		scoreY = scoreYB; // Adjust for controls positioning
@@ -697,7 +719,8 @@ void NCursesGraphic::drawSnake(const GameState &state) {
 	wattroff(gameWindow, COLOR_PAIR(1));
 
 	if (state.config.mode != GameMode::SINGLE) {
-		wattron(gameWindow, COLOR_PAIR(7));
+		int snakeBColor = (state.config.mode == GameMode::AI) ? 6 : 7; // Green for AI, Yellow for Player 2
+		wattron(gameWindow, COLOR_PAIR(snakeBColor));
 		for (int i = 0; i < state.snake_B->getLength(); ++i) {
 			int y = state.snake_B->getSegments()[i].y + 4;
 			int x = (state.snake_B->getSegments()[i].x * 2) + 4;
@@ -711,7 +734,7 @@ void NCursesGraphic::drawSnake(const GameState &state) {
 				);
 			}
 		}
-		wattroff(gameWindow, COLOR_PAIR(7));
+		wattroff(gameWindow, COLOR_PAIR(snakeBColor));
 	}
 }
 
