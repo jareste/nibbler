@@ -343,85 +343,144 @@ int FloodFill::countReachable(Vec2 start, const GameState& state);
 bool FloodFill::canReachTail(const std::vector<Vec2>& path, const GameState& state);
 ```
 
-I've written my ass off today, so I'll try to be brief, and, honestly, the logic behind pathfinding and floodfilling, in the scope of this project's implementations, is quite similar. (Also, this part is quite simpler):
-- Reachable spots count is just a basic check of the amount of walkable positions in the game arena
-- Reachable tail check, athough could be more refined, is right now based on a comparisson between the amount of reachable cells and the required space for the (updated, after eating) size of the snake.
+The FloodFill serves as **safety net**, i.e. it prevents the AI from trapping itself. I've written my ass off today, so I'll try to be brief (spoiler: I failed), and, honestly, the logic behind pathfinding and floodfilling, in the scope of this project's implementations, is quite similar. (Also, this part is quite simpler):
 
-> Because `FloodFill` and `PathFinder` needed shared functions, I resolved to giving them a shared, inherited class. `GridHelper` now holds the functions for **manhattan distance calculation, neighbor check and isWalkable evaluation**.
+#### **`countReachable()` - BFS-based space counter:**
 
-> for specific code implementations, go to the source files!! I'm TIRED!!!
+This is, at its core, a breadth-first search that answers the question: *"How many cells can I reach from here?"* (not counting the one I'm going to end up in after losing my mind over this project) 
+
+**Algorithm breakdown:**
+1. Start from a position and flood outward
+2. Mark each visited cell to avoid counting twice
+3. For each cell, check all 4 neighbors (up, down, left, right)
+4. If a neighbor is walkable (not snake, not wall) → add to queue
+5. Keep going until queue is empty
+6. Return total count
+
+The implementation uses a `std::queue` for BFS traversal and a 2D `visited` array to track explored cells. FIFO, simplicity, etc and whatever.
+
+> **Key feature:** The `ignorePositions` parameter gives the ability to treat certain snake segments as empty space, which is *critical* for the tail reachability check.
+
+#### **`canReachTail()` - The survival checker:**
+
+This is where things get interesting (right?). The function simulates: *"If I eat the food, will I trap myself?"*
+
+**The logic:**
+1. Get the new head position (end of path to food)
+2. Identify current tail position
+3. Count reachable cells from new head, **treating current tail as empty** (it will move away after the snake moves)
+4. Compare reachable space vs snake's new length (current + 1 for growth)
+5. Return `true` if `reachable >= snake.length + 1`, `false` otherwise
+
+> The tail is ignored because after the snake moves and eats, the tail position becomes empty space. We need to account for this *future state*, not the current one. This forward-thinking is what makes the AI S M A R T  A S  H E L L.
+
+
+#### **GridHelper - DRY principle in action**
+
+Because `FloodFill` and `PathFinder` needed shared functions (`isWalkable`, `getNeighbors`, `manhattanDistance`), I resolved to giving them a shared base class. `GridHelper` now holds these common utilities, and both AI components inherit from it.
+
+> for further specific code implementations, go to the source files!! I'm TIRED!!!
 
 <br>
 <br>
 
 ## 15.6 Deciding to LIVE (until DEATH is the only option)
+
+With Pathfinder and FloodFill in place, it's time for the brain of the operation: **SnakeAI**. This is where all the pieces come together into a decision-making engine that, hopefully, won't immediately run into a wall and die (oh, the dream).
+
+The AI brain operates on a **3-tier decision hierarchy**, cascading from aggressive to defensive strategies:
+
+### **Tier 1: go to food**
+
 ```cpp
-Input SnakeAI::decideNextMove(const GameState& state) {
-    // 1. Find path to food
+Input SnakeAI::goToFood(const GameState& state) {
+    if (!state.snake_B) return Input::None;
+    
     Vec2 head = state.snake_B->getSegments()[0];
     Vec2 foodPos = state.food.getPosition();
     
-    std::vector<Vec2> path = pathFinder.findPath(head, foodPos, state);
-    
-    // 2. If path found, take first step
-    if (!path.empty()) {
-        Vec2 nextPos = path[0];
-        return positionToInput(head, nextPos);
-    }
-    
-    // 3. No path? Survival mode
-    return survivalMove(state);
-}
-```
-```cpp
-Input SnakeAI::goToFood(const GameState& state) {
-    Vec2 head = state.snake_B->getSegments()[0];
-    std::vector<Vec2> path = pathFinder.findPath(head, food, state);
+    // find food path
+    std::vector<Vec2> path = pathFinder.findPath(state, head, foodPos, config.maxSearchDepth);
     
     if (!path.empty()) {
-        // SAFETY CHECK: Can we reach our tail after eating?
+        // tail reachable check (HARD MODE ONLY)
         if (config.useSafetyCheck) {
-            if (!floodFill.canReachTail(path, state)) {
-                return survivalMove(state);  // Path is unsafe, don't take it
+            if (!floodFill.canReachTail(state, *state.snake_B, path)) {
+                // if the path is unsafe, go into survival mode
+                return survivalMode(state);
             }
         }
-        
+
         return positionToInput(head, path[0]);
     }
     
-    return survivalMove(state);
+    // no food path triggers survival mode too
+    return survivalMode(state);
 }
 ```
+
+The AI asks: **"Can I safely eat this food?"**
+- Uses A* to find optimal path to food
+- **Hard mode:** Validates safety with FloodFill (`canReachTail`)
+- **Easy/Medium:** Y O L O, just go for it
+- If path is unsafe or doesn't exist → turn into survival (quite frankly, I'm starting to feel that this AI is extremely relatable)
+
+Depending on difficulty:
+- **EASY**: Short search depth (50 nodes), no safety → rushes food, easier to trap itself
+- **MEDIUM**: Better search (100 nodes), no safety → smarter but still risky
+- **HARD**: Full search (200 nodes), safety validation → only takes safe apples
+
+### **Tier 2: S U R V I V E**
+
 ```cpp
 Input SnakeAI::survivalMode(const GameState& state) {
-    Vec2 head = state.snake_B->getSegments()[0];
-    Vec2 tail = state.snake_B->getSegments().back();
+    if (!state.snake_B) return Input::None;
     
-    // Try to reach tail (it's moving, so always accessible space)
-    std::vector<Vec2> pathToTail = pathFinder.findPath(head, tail, state);
+    Vec2 head = state.snake_B->getSegments()[0];
+    const Vec2* segments = state.snake_B->getSegments();
+    int length = state.snake_B->getLength();
+    Vec2 tail = segments[length - 1];
+    
+    // try to reach tail because it's always moving, i.e. it is always a safe spot
+    std::vector<Vec2> pathToTail = pathFinder.findPath(state, head, tail, config.maxSearchDepth);
     
     if (!pathToTail.empty()) {
         return positionToInput(head, pathToTail[0]);
     }
     
-    // Last resort: just don't die
+    // If tail is not reachable, just go towards open space
     return maximizeSpace(state);
 }
 ```
+
+The AI asks: **"Can I reach my tail?"**
+- The tail is *always moving*, making it a perpetually safe target
+- Chasing it creates a circular pattern (looks weird, but going against this would we weird, no?)
+- Keeps the snake alive when food is too risky
+- If even tail is unreachable → go into space maximization
+
+### **Tier 3: not wanting to die**
+
 ```cpp
 Input SnakeAI::maximizeSpace(const GameState& state) {
+    if (!state.snake_B) return Input::None;
+    
     Vec2 head = state.snake_B->getSegments()[0];
     
-    // Try all 4 directions, pick the one with most open space
-    std::vector<Input> validMoves;
-    int bestSpace = 0;
+    // pick the direction (among the 4 available) with most open space
+    int bestSpace = -1;
     Input bestMove = Input::None;
     
-    for (Input dir : {Input::Up_B, Input::Down_B, Input::Left_B, Input::Right_B}) {
+    Input directions[] = {Input::Up_B, Input::Down_B, Input::Left_B, Input::Right_B};
+    
+    for (Input dir : directions) {
         Vec2 nextPos = getNextPosition(head, dir);
         
+        // Check move safety
         if (isSafeMove(state, nextPos)) {
-            int space = floodFill.countReachable(nextPos, state);
+            // If it is safe, count the reachable spots
+            int space = floodFill.countReachable(state, nextPos, {});
+            
             if (space > bestSpace) {
                 bestSpace = space;
                 bestMove = dir;
@@ -433,24 +492,86 @@ Input SnakeAI::maximizeSpace(const GameState& state) {
 }
 ```
 
+The AI asks: **"Which direction gives me the most room to breathe?"**
+- Tests all 4 directions
+- Uses FloodFill to count reachable cells for each
+- Picks the direction with maximum open space
+- Last ditch effort before inevitable doom
+
+This is the "I'm trapped but at least I'll die in the biggest room" strategy. And in the process, I might even survive. Good for you, little snake.
+
+#### **Movement Decision**
+
+```cpp
+Input SnakeAI::decideNextMove(const GameState& state) {
+    if (!state.snake_B) return Input::None;
+    
+    // EASY MODE → Random moves sometimes
+    if (config.level == AIConfig::EASY && config.randomMoveChance > 0.0f) {
+        float roll = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        if (roll < config.randomMoveChance) {
+            // random move must still be valid, unless we want artificial AI deaths (WE DONT)
+            return maximizeSpace(state);
+        }
+    }
+    
+    // decision hierarchy:
+    // 1 - Try to go to food
+    Input foodMove = goToFood(state);
+    if (foodMove != Input::None) {
+        return foodMove;
+    }
+    
+    // 2 - If can't get food safely, go into survival mode
+    Input survivalMove = this->survivalMode(state);
+    if (survivalMove != Input::None) {
+        return survivalMove;
+    }
+    
+    // 3 - just D O N T   D I E
+    Input spaceMove = maximizeSpace(state);
+    if (spaceMove != Input::None) {
+        return spaceMove;
+    }
+    
+    // 4 - AI is turbo cooked, but something needs to be returned
+    return Input::Left_B;
+}
 ```
-Step 1: Pathfinder::findPath()
-  ↓
-Step 2: Test with empty grid
-  ↓
-Step 3: FloodFill::countReachable()
-  ↓
-Step 4: SnakeAI::goToFood() (no safety)
-  ↓
-Step 5: Test - AI plays (dumbly)
-  ↓
-Step 6: FloodFill::canReachTail()
-  ↓
-Step 7: Add safety to goToFood()
-  ↓
-Step 8: SnakeAI::survivalMode()
-  ↓
-Step 9: SnakeAI::maximizeSpace()
-  ↓
-Step 10: Tune AIConfig presets
+
+This is called every frame by `GameManager`. It:
+1. Checks for Easy mode randomness (15% dumb snake)
+2. Tries food → survival → space in order
+3. Returns first valid move
+4. Has a fallback (Left) to prevent crashes
+
+#### **Integration with GameManager**
+
+```cpp
+void GameManager::update() {
+    // If AI mode → generate AI decision each frame
+    if (_state->config.mode == GameMode::AI && aiController && _state->snake_B) {
+        Input aiMove = aiController->decideNextMove(*_state);
+        if (aiMove != Input::None) {
+            bufferInput(aiMove);
+        }
+    }
+    
+    processNextInput();
+    // ... rest of game logic
+}
 ```
+
+Every frame, if we're in AI mode:
+1. AI decides next move
+2. Move gets buffered (same as player input)
+3. Input processing applies move to snake_B
+4. Snake moves, collision detection runs, repeat
+
+> The AI is treated just like a player with really fast reflexes. I feel that I'm in the same spot as when I wrote the AI for my [Pong Engine](https://github.com/hugomgris/pong), in the sense that writing an AI for these type of games is tricky if you want to make it 1) work fine and 2) be beatable. Either there is a stronger, more present error prone pipeline in the decison making, or the AI reigns. If someone has any advice in this line, write me!!
+
+---
+
+And that's that. AI is implemented. I *just* need to handle some rendering stuff, like the color of the AI snake across libraries and some tweaks in the results/gameover screens, and my *nibbler* journey will be done*.
+
+>*pending sounds (partner!) and review process.
