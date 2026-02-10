@@ -82,19 +82,19 @@ if (has_colors()) {
 		// Also: I'm reusing some colors (CYAN, GREEN, MAGENTA, YELLOW) to cover for the possibility of not being able to generate new ones
 		init_color(COLOR_RED, 705, 204, 227);		// Red
 		init_color(COLOR_BLUE, 275, 510, 706);		// Blue
-		init_color(COLOR_CYAN, 996, 290, 318);		// Light Red
+		init_color(COLOR_CYAN, 996, 290, 318);		// Light Red (food)
 		init_color(COLOR_GREEN, 300, 300, 300);		// Gray for ground
-		init_color(COLOR_MAGENTA, 565, 933, 565);	// Light Green (144, 238, 144)
-		init_color(COLOR_YELLOW, 1000, 843, 0);		// Golden Yellow (255, 215, 0)
+		init_color(COLOR_MAGENTA, 565, 933, 565);	// Light Green (144, 238, 144) - AI snake
+		init_color(COLOR_YELLOW, 1000, 843, 0);		// Golden Yellow (255, 215, 0) - Snake B
 	}
 	
 	init_pair(1, COLOR_BLUE, COLOR_BLACK);    // Snake A (blue on black)
 	init_pair(2, COLOR_CYAN, COLOR_BLACK);    // Food (light red/cyan on black)
 	init_pair(3, COLOR_BLACK, COLOR_BLACK);   // Background
 	init_pair(4, COLOR_WHITE, COLOR_BLACK);   // UI text
-	init_pair(5, COLOR_GREEN, COLOR_BLACK);   // Ground
-	init_pair(6, COLOR_MAGENTA, COLOR_BLACK); // Light Green
-	init_pair(7, COLOR_YELLOW, COLOR_BLACK);  // Golden Yellow
+	init_pair(5, COLOR_GREEN, COLOR_BLACK);   // Ground (gray)
+	init_pair(6, COLOR_MAGENTA, COLOR_BLACK); // Snake AI (light green)
+	init_pair(7, COLOR_YELLOW, COLOR_BLACK);  // Snake B (golden yellow)
 	
 	bkgd(COLOR_PAIR(0));
 	clear();
@@ -272,6 +272,20 @@ void NCursesGraphic::drawMode(const GameState &state, int win_height, int win_wi
 			wattron(gameWindow, COLOR_PAIR(7));
 			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 9, modeText.c_str());
 			wattroff(gameWindow, COLOR_PAIR(7));
+			break;
+
+		case GameMode::AI:
+			modeText = "VsAI";
+			base = "SINGLE - MULTI -     ";
+			combined = base;
+
+			wattron(gameWindow, COLOR_PAIR(5));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2, base.c_str());
+			wattroff(gameWindow, COLOR_PAIR(5));
+
+			wattron(gameWindow, COLOR_PAIR(6));
+			mvwaddstr(gameWindow, anchorY, (win_width - combined.size()) / 2 + 17, modeText.c_str());
+			wattroff(gameWindow, COLOR_PAIR(6));
 			break;
 	}
 }

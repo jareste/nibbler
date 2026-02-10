@@ -92,6 +92,18 @@ private:
 	Color snakeBDarkSide = { 218, 112, 21, 255 };			// Peru orange (lighter than front)
 	Color snakeBHidden = customBlack;
 	
+	// Snake AI colors - Green shades (based on SDL's light green)
+	// Light segments
+	Color snakeAILightTop = { 144, 238, 144, 255 };			// Light green (brightest, matches SDL)
+	Color snakeAILightFront = { 60, 179, 113, 255 };		// Medium sea green (darker)
+	Color snakeAILightSide = { 102, 205, 170, 255 };		// Medium aquamarine (lighter than front)
+	
+	// Dark segments
+	Color snakeAIDarkTop = { 102, 205, 170, 255 };			// Medium aquamarine
+	Color snakeAIDarkFront = { 46, 139, 87, 255 };			// Sea green (darker)
+	Color snakeAIDarkSide = { 60, 179, 113, 255 };			// Medium sea green (lighter than front)
+	Color snakeAIHidden = customBlack;
+	
 	// Food colors - Red shades (based on ground red)
 	Color foodTop = { 255, 120, 120, 255 };					// Light coral red (brightest)
 	Color foodFront = { 180, 52, 58, 255 };					// Ground dark red (darker)

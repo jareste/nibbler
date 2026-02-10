@@ -51,6 +51,11 @@ void RaylibTextRenderer::drawModes(const GameState &state) {
 			DrawText3D(customFont, "         MULTI       ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeBLightTop, 90.0f, 7.0f, 5.0f);
 			DrawText3D(customFont, "SINGLE -       - VsAI", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 5.0f);
 			break;
+
+		case GameMode::AI:
+			DrawText3D(customFont, "                 VsAI", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.snakeAILightTop, 90.0f, 7.0f, 5.0f);
+			DrawText3D(customFont, "SINGLE - MULTI -     ", textPosition, fontSize, fontSpacing, lineSpacing, false, graphic.customGray, 90.0f, 7.0f, 5.0f);
+			break;
 	}	
 }
 

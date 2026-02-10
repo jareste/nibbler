@@ -21,7 +21,7 @@ enum class GameStateType {
 enum class GameMode {
 	SINGLE,
 	MULTI,
-	//AI
+	AI
 };
 
 struct GameConfig {
@@ -39,7 +39,30 @@ struct GameState {
 	bool			isPaused;
 	GameStateType	currentState;
 	int				score;		// for single player or player A in multiplayer
-	int				scoreB;		// for player B in multiplayer
+	int				scoreB;		// for player B/AI in multiplayer
 	IAudio*			audio;
 	GameConfig&		config;
+};
+
+struct AIConfig {
+	// this is were difficulty settings are, well, set
+	enum Difficulty { EASY, MEDIUM, HARD };
+	
+	Difficulty level;
+	
+	// Timing
+	int thinkDelay;			// Ticks between decisions (0 = every tick)
+	
+	// Pathfinding
+	int maxSearchDepth;		// Node expansion limit
+	bool useSafetyCheck;	// Tail reachability
+	bool predictOpponent;	// Consider opponent movement
+	
+	// Behavior
+	float randomMoveChance;	// 0.0 - 1.0 (for easy mode)
+	float aggressiveness;	// 0.0 = cautious, 1.0 = greedy
+	
+	static AIConfig easy();
+	static AIConfig medium();
+	static AIConfig hard();
 };

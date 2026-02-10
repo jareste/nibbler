@@ -4,6 +4,9 @@
 1. [Day Twenty Plan](#151-day-twenty-plan)
 2. [Not That Kind of AI!](#152-not-that-kind-of-ai)
 3. [Too Many Whats in the Land of Hows](#153-too-many-whats-in-the-land-of-hows)
+4. [The Closest Distance Between a Snake and an Apple](#154-the-closest-distance-between-a-snake-and-an-apple)
+5. [Forewarned is Forearmed](#155-forewarned-is-forearmed)
+6. [Deciding to LIVE (until DEATH is the only option)](#156-deciding-to-live-until-death-is-the-only-option)
 
 <br>
 <br>
@@ -99,47 +102,47 @@ enum class GameMode {
 ```
 ```cpp
 class PathFinder {
-	public:
-		struct Node {
-			Vec2 pos;
-			int gCost;                              // Distance from start
-			int hCost;                              // Heuristic to goal
-			int fCost() { return gCost + hCost; }
-			Node* parent;
-		};
-		
-		std::vector<Vec2> findPath(
-			const GameState& state,
-			Vec2 start,
-			Vec2 goal,
-			int maxDepth = 200                      // Difficulty tuning
-		);
-		
-	private:
-		int manhattanDistance(Vec2 a, Vec2 b);
-		bool isReachable(const GameState& state, Vec2 pos);
+public:
+	struct Node {
+		Vec2 pos;
+		int gCost;                              // Distance from start
+		int hCost;                              // Heuristic to goal
+		int fCost() { return gCost + hCost; }
+		Node* parent;
 	};
+	
+	std::vector<Vec2> findPath(
+		const GameState& state,
+		Vec2 start,
+		Vec2 goal,
+		int maxDepth = 200                      // Difficulty tuning
+	);
+	
+private:
+	int manhattanDistance(Vec2 a, Vec2 b);
+	bool isReachable(const GameState& state, Vec2 pos);
+};
 ```
 ```cpp
 class FloodFill {
-	public:
-		// count reachable empty cells from start
-		int countReachable(
-			const GameState& state,
-			Vec2 start,
-			const std::vector<Vec2>& ignorePositions = {}       // mostly for the tail right now
-		);
-		
-		bool canReachTail(
-			const GameState& state,
-			const Snake& aiSnake,
-			const std::vector<Vec2>& proposedPath
-		);
-		
-	private:
-		std::vector<std::vector<bool>> visited;
-		void floodFillRecursive(const GameState& state, Vec2 pos);
-	};
+public:
+	// count reachable empty cells from start
+	int countReachable(
+		const GameState& state,
+		Vec2 start,
+		const std::vector<Vec2>& ignorePositions = {}       // mostly for the tail right now
+	);
+	
+	bool canReachTail(
+		const GameState& state,
+		const Snake& aiSnake,
+		const std::vector<Vec2>& proposedPath
+	);
+	
+private:
+	std::vector<std::vector<bool>> visited;
+	void floodFillRecursive(const GameState& state, Vec2 pos);
+};
 ```
 ```cpp
 class SnakeAI {
@@ -189,3 +192,129 @@ struct AIConfig {
 ```
 
 Now, I'll go and make the necessary changes in the current build to be able to start implementing/testing the AI. Be right back...
+
+... And everything is ready to start developing the AI (SDL's menu now has the `VsAI` option available, and the GameManager is set up to ask the AI for moves and buffer them as inputs).
+
+<br>
+
+## 15.4 The Closest Distance Between a Snake and an Apple
+Let's face our first great foe, the **pathfinding**. Its key functions are going to be:
+```cpp
+std::vector<Vec2> PathFinder::findPath(Vec2 start, Vec2 goal, const GameState& state);
+int manhattanDistance(Vec2 a, Vec2 b);
+bool isWalkable(Vec2 pos, const GameState& state);
+```
+
+<br>
+<br>
+
+## 15.5 Forewarned is Forearmed
+I did a quick check for the equivalent to the spanish expression *hombre precavido vale por dos* and apparently this is the one. Unimportant. Let's now focus in the **flood fill** based safety checker, which has the following key functions:
+```cpp
+int FloodFill::countReachable(Vec2 start, const GameState& state);
+bool FloodFill::canReachTail(const std::vector<Vec2>& path, const GameState& state);
+```
+
+<br>
+<br>
+
+## 15.6 Deciding to LIVE (until DEATH is the only option)
+```cpp
+Input SnakeAI::decideNextMove(const GameState& state) {
+    // 1. Find path to food
+    Vec2 head = state.snake_B->getSegments()[0];
+    Vec2 foodPos = state.food.getPosition();
+    
+    std::vector<Vec2> path = pathFinder.findPath(head, foodPos, state);
+    
+    // 2. If path found, take first step
+    if (!path.empty()) {
+        Vec2 nextPos = path[0];
+        return positionToInput(head, nextPos);
+    }
+    
+    // 3. No path? Survival mode
+    return survivalMove(state);
+}
+```
+```cpp
+Input SnakeAI::goToFood(const GameState& state) {
+    Vec2 head = state.snake_B->getSegments()[0];
+    std::vector<Vec2> path = pathFinder.findPath(head, food, state);
+    
+    if (!path.empty()) {
+        // SAFETY CHECK: Can we reach our tail after eating?
+        if (config.useSafetyCheck) {
+            if (!floodFill.canReachTail(path, state)) {
+                return survivalMove(state);  // Path is unsafe, don't take it
+            }
+        }
+        
+        return positionToInput(head, path[0]);
+    }
+    
+    return survivalMove(state);
+}
+```
+```cpp
+Input SnakeAI::survivalMode(const GameState& state) {
+    Vec2 head = state.snake_B->getSegments()[0];
+    Vec2 tail = state.snake_B->getSegments().back();
+    
+    // Try to reach tail (it's moving, so always accessible space)
+    std::vector<Vec2> pathToTail = pathFinder.findPath(head, tail, state);
+    
+    if (!pathToTail.empty()) {
+        return positionToInput(head, pathToTail[0]);
+    }
+    
+    // Last resort: just don't die
+    return maximizeSpace(state);
+}
+```
+```cpp
+Input SnakeAI::maximizeSpace(const GameState& state) {
+    Vec2 head = state.snake_B->getSegments()[0];
+    
+    // Try all 4 directions, pick the one with most open space
+    std::vector<Input> validMoves;
+    int bestSpace = 0;
+    Input bestMove = Input::None;
+    
+    for (Input dir : {Input::Up_B, Input::Down_B, Input::Left_B, Input::Right_B}) {
+        Vec2 nextPos = getNextPosition(head, dir);
+        
+        if (isSafeMove(state, nextPos)) {
+            int space = floodFill.countReachable(nextPos, state);
+            if (space > bestSpace) {
+                bestSpace = space;
+                bestMove = dir;
+            }
+        }
+    }
+    
+    return bestMove;
+}
+```
+
+```
+Step 1: Pathfinder::findPath()
+  ↓
+Step 2: Test with empty grid
+  ↓
+Step 3: FloodFill::countReachable()
+  ↓
+Step 4: SnakeAI::goToFood() (no safety)
+  ↓
+Step 5: Test - AI plays (dumbly)
+  ↓
+Step 6: FloodFill::canReachTail()
+  ↓
+Step 7: Add safety to goToFood()
+  ↓
+Step 8: SnakeAI::survivalMode()
+  ↓
+Step 9: SnakeAI::maximizeSpace()
+  ↓
+Step 10: Tune AIConfig presets
+```

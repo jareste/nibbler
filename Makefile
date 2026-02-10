@@ -26,9 +26,12 @@ INCDIR          := incs
 # -=-=-=-=-    MAIN PROGRAM FILES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
 SRC             := main.cpp LibraryManager.cpp GameManager.cpp Snake.cpp Food.cpp Utils.cpp
-SRCS            := $(addprefix $(SRCDIR)/, $(SRC))
-OBJS            := $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o))
-DEPS            := $(addprefix $(DEPDIR)/, $(SRC:.cpp=.d))
+AI_SRC          := AI/AIConfig.cpp AI/FloodFill.cpp AI/Pathfinder.cpp AI/SnakeAI.cpp
+ALL_SRC         := $(SRC) $(AI_SRC)
+
+SRCS            := $(addprefix $(SRCDIR)/, $(ALL_SRC))
+OBJS            := $(addprefix $(OBJDIR)/, $(SRC:.cpp=.o)) $(addprefix $(OBJDIR)/, $(AI_SRC:.cpp=.o))
+DEPS            := $(addprefix $(DEPDIR)/, $(SRC:.cpp=.d)) $(addprefix $(DEPDIR)/, $(AI_SRC:.cpp=.d))
 
 INCLUDES        := -I$(INCDIR)
 
@@ -70,7 +73,8 @@ RAYLIB_OBJS      := .obj/libs/RaylibGraphic.o .obj/libs/RaylibTitleHandler.o .ob
 NCURSES_OBJS     := .obj/libs/NCursesGraphic.o
 AUDIO_OBJS       := .obj/libs/SDLMIXAudio.o
 
-GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o 
+AI_OBJS          := $(OBJDIR)/AI/AIConfig.o $(OBJDIR)/AI/FloodFill.o $(OBJDIR)/AI/Pathfinder.o $(OBJDIR)/AI/SnakeAI.o
+GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $(OBJDIR)/Utils.o $(AI_OBJS) 
 
 # -=-=-=-=-    FLAGS FOR EACH LIBRARY -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
@@ -100,15 +104,13 @@ TEST_OBJDIR		:= .test_obj
 TEST_DEPDIR		:= .test_dep
 TEST_BINARY		:= run_tests
 
-# Test source files (we'll add these)
 TEST_SRCS		:= $(wildcard $(TEST_DIR)/unit/*.cpp) \
 					$(wildcard $(TEST_DIR)/integration/*.cpp)
 TEST_OBJS		:= $(patsubst $(TEST_DIR)/%.cpp,$(TEST_OBJDIR)/%.o,$(TEST_SRCS))
 TEST_DEPS		:= $(patsubst $(TEST_DIR)/%.cpp,$(TEST_DEPDIR)/%.d,$(TEST_SRCS))
 
-# Need to compile main program objects for testing (exclude main.cpp)
 TESTABLE_SRCS	:= $(filter-out $(SRCDIR)/main.cpp, $(SRCS))
-TESTABLE_OBJS	:= $(addprefix $(OBJDIR)/, $(notdir $(TESTABLE_SRCS:.cpp=.o)))
+TESTABLE_OBJS	:= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(TESTABLE_SRCS))
 
 TEST_CFLAGS		:= $(CFLAGS) $(GTEST_INCLUDES)
 TEST_LDFLAGS	:= $(LDFLAGS) -lpthread
@@ -308,8 +310,10 @@ $(NAME): $(OBJS)
 
 directories:
 	@mkdir -p $(OBJDIR)
+	@mkdir -p $(OBJDIR)/AI
 	@mkdir -p $(LIB_OBJDIR)
 	@mkdir -p $(DEPDIR)
+	@mkdir -p $(DEPDIR)/AI
 	@mkdir -p $(DEPDIR)/libs
 
 game: re

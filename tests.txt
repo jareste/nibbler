@@ -84,3 +84,11 @@ No leaks after library switching
 <input disabled="" type="checkbox"> Performance
 Game loop maintains target FPS
 Update time is reasonable
+
+[x] Write manhattanDistance()
+[x] Write isWalkable()
+[x] Write getNeighbors()
+[x] Choose data structures (open/closed/map)
+[x] Implement main A* loop
+[x] Implement path reconstruction
+[ ] Test with simple case (empty grid)

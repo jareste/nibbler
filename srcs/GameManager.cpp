@@ -5,7 +5,7 @@ GameManager::GameManager(GameState *state) : _state(state) {}
 void GameManager::update()  {
 	processNextInput();
 	_state->snake_A.move();
-	if (_state->config.mode != GameMode::SINGLE && _state->snake_B)
+	if (_state->config.mode == GameMode::MULTI && _state->snake_B)
 		_state->snake_B->move();
 	_state->isRunning = checkGameOverCollision();
 	checkHeadFoodCollision();
@@ -17,13 +17,12 @@ void GameManager::bufferInput(Input input) {
 		if (inputBuffer_A.size() < MAX_BUFFER_SIZE) {
 			inputBuffer_A.push(input);
 		}
-	}
-	// Player B (WASD)
-	else if (input >= Input::Up_B && input <= Input::Right_B) {
+	} else if (_state->config.mode == GameMode::MULTI && input >= Input::Up_B && input <= Input::Right_B) { 
 		if (inputBuffer_B.size() < MAX_BUFFER_SIZE) {
-			inputBuffer_B.push(input);
+			inputBuffer_B.push(input); // Player B (WASD)
 		}
-	}
+	} /* else if (_state->config.mode == GameMode::AI)
+		inputBuffer_B.push(aiController->decideNextMove(*_state)); */
 }
 
 void GameManager::processNextInput() {
@@ -186,4 +185,8 @@ void GameManager::clearInputBuffer() {
 	while (!inputBuffer_B.empty()) {
 		inputBuffer_B.pop();
 	}
+}
+
+void GameManager::setAIController(SnakeAI *ai) {
+	aiController = ai;
 }

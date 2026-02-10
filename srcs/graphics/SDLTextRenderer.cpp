@@ -133,6 +133,12 @@ void SDLTextRenderer::drawMode(const GameState &state, int centerX, int centerY,
 			stateB = "SINGLE -       - VsAI";
 			textColor = goldenYellow;
 			break;
+
+		case GameMode::AI:
+			stateA = "                 VsAI";
+			stateB = "SINGLE - MULTI -     ";
+			textColor = lightGreen;
+			break;
 	}
 	drawText(stateA, centerX, centerY, offset, currentFont, textColor, true);
 	textColor = customGray;
