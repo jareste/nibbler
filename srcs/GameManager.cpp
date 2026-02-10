@@ -3,9 +3,19 @@
 GameManager::GameManager(GameState *state) : _state(state) {}
 
 void GameManager::update()  {
+	// If AI mode → generate AI decision each frame
+	if (_state->config.mode == GameMode::AI && aiController && _state->snake_B) {
+		Input aiMove = aiController->decideNextMove(*_state);
+		if (aiMove != Input::None) {
+			bufferInput(aiMove);
+		}
+	}
+	
 	processNextInput();
 	_state->snake_A.move();
 	if (_state->config.mode == GameMode::MULTI && _state->snake_B)
+		_state->snake_B->move();
+	if (_state->config.mode == GameMode::AI && _state->snake_B)
 		_state->snake_B->move();
 	_state->isRunning = checkGameOverCollision();
 	checkHeadFoodCollision();
@@ -21,8 +31,12 @@ void GameManager::bufferInput(Input input) {
 		if (inputBuffer_B.size() < MAX_BUFFER_SIZE) {
 			inputBuffer_B.push(input); // Player B (WASD)
 		}
-	} /* else if (_state->config.mode == GameMode::AI)
-		inputBuffer_B.push(aiController->decideNextMove(*_state)); */
+	} else if (_state->config.mode == GameMode::AI && input >= Input::Up_B && input <= Input::Right_B) {
+		// AI moves
+		if (inputBuffer_B.size() < MAX_BUFFER_SIZE) {
+			inputBuffer_B.push(input);
+		}
+	}
 }
 
 void GameManager::processNextInput() {

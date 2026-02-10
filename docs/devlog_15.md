@@ -343,6 +343,14 @@ int FloodFill::countReachable(Vec2 start, const GameState& state);
 bool FloodFill::canReachTail(const std::vector<Vec2>& path, const GameState& state);
 ```
 
+I've written my ass off today, so I'll try to be brief, and, honestly, the logic behind pathfinding and floodfilling, in the scope of this project's implementations, is quite similar. (Also, this part is quite simpler):
+- Reachable spots count is just a basic check of the amount of walkable positions in the game arena
+- Reachable tail check, athough could be more refined, is right now based on a comparisson between the amount of reachable cells and the required space for the (updated, after eating) size of the snake.
+
+> Because `FloodFill` and `PathFinder` needed shared functions, I resolved to giving them a shared, inherited class. `GridHelper` now holds the functions for **manhattan distance calculation, neighbor check and isWalkable evaluation**.
+
+> for specific code implementations, go to the source files!! I'm TIRED!!!
+
 <br>
 <br>
 
