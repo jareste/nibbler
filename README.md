@@ -292,10 +292,10 @@ The full devlogs are in `docs/` and chronicle every technical decision, bug fix,
 
 **Start Menu & Game Over Screens**
 - [x] Refine SDL2 menu graphics (currently placeholder text)
-- [ ] Design Raylib 3D menu scene (maybe floating title?)
-- [ ] Unify game over screen aesthetics across all three libraries
+- [x] Design Raylib 3D menu scene (maybe floating title?)
+- [x] Unify game over screen aesthetics across all three libraries
 - [ ] Add animated transitions between menu and gameplay
-- [ ] Animate the menus
+- [x] Animate the menus
 
 **NCurses Specific**
 - [x] ~~Fix color management for custom palettes~~ (**DONE**: removed `A_BOLD` flag interference)
@@ -304,10 +304,10 @@ The full devlogs are in `docs/` and chronicle every technical decision, bug fix,
 
 **SDL2 Specific**
 - [ ] Implement sprite sheets instead of colored rectangles
-- [ ] Expand the visual effects and animations
+- [x] Expand the visual effects and animations
 
 **Raylib Specific**
-- [ ] Experiment further with regards to postprocessing
+- [x] Experiment further with regards to postprocessing
 - [ ] Implement camera interactivity
 - [ ] Customize 3D models?
 
