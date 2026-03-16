@@ -78,10 +78,10 @@ GAME_OBJS        := $(OBJDIR)/Snake.o $(OBJDIR)/Food.o $(OBJDIR)/GameManager.o $
 
 # -=-=-=-=-    FLAGS FOR EACH LIBRARY -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- #
 
-SDL_CFLAGS       := $(LIB_CFLAGS) -I$(SDL_DIR)/include -I$(SDL_TTF_DIR)
+SDL_CFLAGS       := $(LIB_CFLAGS) -I$(SDL_DIR)/include -I$(SDL_TTF_DIR) -I$(SDL_MIXER_DIR)/include
 RAYLIB_CFLAGS    := $(LIB_CFLAGS) -I$(RAYLIB_DIR)/src -Wno-missing-field-initializers
 NCURSES_CFLAGS   := $(LIB_CFLAGS) -I$(NCURSES_DIR)/include -I$(NCURSES_DIR)/include/ncursesw
-AUDIO_CFLAGS     := $(LIB_CFLAGS) -I$(SDL_MIXER_DIR)/include
+AUDIO_CFLAGS     := $(LIB_CFLAGS) -I$(SDL_DIR)/include -I$(SDL_MIXER_DIR)/include
 
 SDL_LDFLAGS      := -L$(SDL_DIR)/build -lSDL2 -L$(SDL_TTF_DIR)/build -lSDL2_ttf -Wl,-rpath,$(SDL_DIR)/build -Wl,-rpath,$(SDL_TTF_DIR)/build
 RAYLIB_LDFLAGS   := -L$(RAYLIB_DIR)/src -lraylib -lm -lpthread -ldl -lrt -lX11
