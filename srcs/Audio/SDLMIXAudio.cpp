@@ -1,6 +1,6 @@
 #include "../../incs/SDLMIXAudio.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
