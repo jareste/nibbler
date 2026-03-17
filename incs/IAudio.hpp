@@ -12,6 +12,8 @@ class IAudio {
 		// sound management
 		virtual bool loadSound(const std::string &id, const std::string &filepath) = 0;
 		virtual void unloadSound(const std::string &id) = 0;
+		virtual bool loadMusic(const std::string &id, const std::string &filepath) = 0;
+		virtual void unloadMusic(const std::string &id) = 0;
 
 		// playback
 		virtual void playSound(const std::string &id) = 0;

@@ -102,9 +102,9 @@ void GameManager::checkHeadFoodCollision() {
 
 	if (head_A.x == foodPos.x && head_A.y == foodPos.y)
 	{
-		/* if (_state->audio)
-			_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
-			
+		if (_state->audio)
+			_state->audio->playSound("eat");
+
 		_state->snake_A.grow();
 		_state->score++;  // Increment score when food is eaten
 		
@@ -118,8 +118,8 @@ void GameManager::checkHeadFoodCollision() {
 		Vec2	head_B = _state->snake_B->getSegments()[0];
 
 		if (head_B.x == foodPos.x && head_B.y == foodPos.y) {
-			/* if (_state->audio)
-				_state->audio->playSound("sound:ñomñomñomñom"); // TODO: real sound implementation */
+			if (_state->audio)
+				_state->audio->playSound("eat");
 				
 			_state->snake_B->grow();
 			_state->scoreB++;  // Increment score when food is eaten

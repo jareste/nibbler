@@ -143,11 +143,19 @@ int main(int argc, char **argv) {
 		}
 		
 		if (input >= Input::SwitchLib1 && input <= Input::SwitchLib3) {
-			int newLib = (int)input - 1;
+			int newLib = static_cast<int>(input) - 1;
 			if (newLib != currentLib) {
 				libManager.unloadGraphicLib();
 				if (!libManager.loadGraphicLib(graphicLibs[newLib].data())) return 1;
 				libManager.getGraphicLib()->init(width, height);
+
+				if ((newLib == static_cast<int>(static_cast<int>(Input::SwitchLib2) - 1)) ||
+						(currentLib == static_cast<int>(static_cast<int>(Input::SwitchLib2) - 1))) {
+					libManager.unloadAudioLib();
+					if (!libManager.loadAudioLib(audioLib.c_str())) return 1;
+					libManager.getAudioLib()->init();
+				}
+
 				currentLib = newLib;
 			}
 		}
@@ -172,8 +180,8 @@ int main(int argc, char **argv) {
 				switchConfigMode(state.config);
 			}
     
-    libManager.getGraphicLib()->renderMenu(state, deltaTime);
-    break;
+			libManager.getGraphicLib()->renderMenu(state, deltaTime);
+			break;
 				
 			case GameStateType::Playing:
 				if (input == Input::Pause) {
